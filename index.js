@@ -2,6 +2,8 @@ require('dotenv').config();
 
 const path = require('path');
 
+process.env.PATH = `${process.env.HOME}/.local/bin:${process.env.PATH || ''}`;
+
 const {
    Client,
    GatewayIntentBits,
