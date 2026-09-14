@@ -196,7 +196,16 @@ setTimeout(() => {
 });
 
 player.events.on('playerError', (queue, error) => {
-console.error('❌ Player error:', error);
+    console.error('❌ Player error:', error);
+
+    const channel = queue.metadata?.channel;
+
+    if (channel) {
+        channel.send(
+            '🥺 Momo had trouble playing that song.'
+        ).catch(console.error);
+    }
+});
 
 player.events.on('playerSkip', (queue, track, reason, description) => {
     const channel = queue.metadata?.channel;
@@ -214,17 +223,8 @@ player.events.on('playerSkip', (queue, track, reason, description) => {
     ).catch(console.error);
 });
 
-const channel = queue.metadata?.channel;
-
-if (channel) {
-channel.send(
-'🥺 Momo had trouble playing that song.'
-).catch(console.error);
-}
-});
-
 player.events.on('error', (queue, error) => {
-console.error('❌ Queue error:', error);
+    console.error('❌ Queue error:', error);
 });
 
 // ======================================================
@@ -412,8 +412,6 @@ ephemeral: true
 
 return;
 }
-
-const currentTrack = queue.currentTrack;
 
 if (currentTrack) {
     intentionallyStoppedTracks.add(currentTrack.id);
