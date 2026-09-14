@@ -64,7 +64,9 @@ const client = new Client({
 // ======================================================
 
 const player = new Player(client, {
-   connectionTimeout: 30000
+   connectionTimeout: 30000,
+   ytdlOptions: {},
+   skipFFmpeg: false
 });
 
 
