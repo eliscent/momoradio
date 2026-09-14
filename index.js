@@ -3,34 +3,36 @@ require('dotenv').config();
 const path = require('path');
 
 const {
-    Client,
-    GatewayIntentBits,
-    Events,
-    EmbedBuilder,
-    ActionRowBuilder,
-    ButtonBuilder,
-    ButtonStyle,
-    StringSelectMenuBuilder,
-    MessageFlags
+   Client,
+   GatewayIntentBits,
+   Events,
+   EmbedBuilder,
+   ActionRowBuilder,
+   ButtonBuilder,
+   ButtonStyle,
+   StringSelectMenuBuilder,
+   MessageFlags
 } = require('discord.js');
 
-const { Player } = require('discord-player');
+const {
+   Player
+} = require('discord-player');
 
 const {
-    DefaultExtractors
+   DefaultExtractors
 } = require('@discord-player/extractor');
 
 const {
-    YouTubeDlpExtractor
+   YouTubeDlpExtractor
 } = require('discord-player-youtubedlp');
 
 const {
-    joinVoiceChannel,
-    createAudioPlayer,
-    createAudioResource,
-    AudioPlayerStatus,
-    VoiceConnectionStatus,
-    entersState
+   joinVoiceChannel,
+   createAudioPlayer,
+   createAudioResource,
+   AudioPlayerStatus,
+   VoiceConnectionStatus,
+   entersState
 } = require('@discordjs/voice');
 
 
@@ -48,10 +50,10 @@ const MOMO_CAFE = 'Cherry Blossom Cafe';
 // ======================================================
 
 const client = new Client({
-    intents: [
-        GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildVoiceStates
-    ]
+   intents: [
+      GatewayIntentBits.Guilds,
+      GatewayIntentBits.GuildVoiceStates
+   ]
 });
 
 
@@ -60,7 +62,7 @@ const client = new Client({
 // ======================================================
 
 const player = new Player(client, {
-    connectionTimeout: 30000
+   connectionTimeout: 30000
 });
 
 
@@ -129,84 +131,84 @@ const idleTimers = new Map();
 
 async function safeReply(interaction, options) {
 
-    try {
+   try {
 
-        if (
-            interaction.deferred ||
-            interaction.replied
-        ) {
+      if (
+         interaction.deferred ||
+         interaction.replied
+      ) {
 
-            return await interaction.editReply(
-                options
-            );
-        }
-
-        return await interaction.reply(
+         return await interaction.editReply(
             options
-        );
+         );
+      }
 
-    } catch (error) {
+      return await interaction.reply(
+         options
+      );
 
-        if (error?.code === 10062) {
+   } catch (error) {
 
-            console.warn(
-                '🌸 Momo: The Discord interaction had already expired.'
-            );
+      if (error?.code === 10062) {
 
-            return null;
-        }
+         console.warn(
+            '🌸 Momo: The Discord interaction had already expired.'
+         );
 
-        console.error(
-            '🌸 Momo: Momo could not respond to the interaction.',
-            error
-        );
+         return null;
+      }
 
-        return null;
-    }
+      console.error(
+         '🌸 Momo: Momo could not respond to the interaction.',
+         error
+      );
+
+      return null;
+   }
 }
 
 
 function looksLikeUrl(text) {
 
-    return /^https?:\/\//i.test(text);
+   return /^https?:\/\//i.test(text);
 }
 
 
 function isSpotifyUrl(text) {
 
-    return (
-        text.includes('open.spotify.com/track/') ||
-        text.startsWith('spotify:track:')
-    );
+   return (
+      text.includes('open.spotify.com/track/') ||
+      text.startsWith('spotify:track:')
+   );
 }
 
 
 function isYouTubeUrl(text) {
 
-    return (
-        text.includes('youtube.com/') ||
-        text.includes('youtu.be/')
-    );
+   return (
+      text.includes('youtube.com/') ||
+      text.includes('youtu.be/')
+   );
 }
 
 
 function shorten(text, max = 95) {
 
-    if (!text) {
-        return 'Unknown';
-    }
+   if (!text) {
+      return 'Unknown';
+   }
 
-    if (text.length <= max) {
-        return text;
-    }
+   if (text.length <= max) {
+      return text;
+   }
 
-    return text.slice(0, max - 3) + '...';
+   return text.slice(0, max - 3) + '...';
 }
 
 
 function getQueue(guildId) {
 
-    return player.nodes.get(guildId);
+   return player.nodes.get(guildId);
 }
 
 
@@ -216,194 +218,194 @@ function getQueue(guildId) {
 
 function clearIdleTimer(guildId) {
 
-    const timer =
-        idleTimers.get(guildId);
+   const timer =
+      idleTimers.get(guildId);
 
-    if (timer) {
+   if (timer) {
 
-        clearTimeout(timer);
+      clearTimeout(timer);
 
-        idleTimers.delete(guildId);
+      idleTimers.delete(guildId);
 
-        console.log(
-            '🌸 Momo: Her idle timer was cancelled.'
-        );
-    }
+      console.log(
+         '🌸 Momo: Her idle timer was cancelled.'
+      );
+   }
 }
 
 
 function startIdleTimer(queue) {
 
-    if (
-        !queue ||
-        queue.deleted
-    ) {
-        return;
-    }
+   if (
+      !queue ||
+      queue.deleted
+   ) {
+      return;
+   }
 
 
-    const guildId =
-        queue.guild.id;
+   const guildId =
+      queue.guild.id;
 
 
-    // Never allow multiple idle timers
-    // for the same guild.
-    clearIdleTimer(
-        guildId
-    );
+   // Never allow multiple idle timers
+   // for the same guild.
+   clearIdleTimer(
+      guildId
+   );
 
 
-    console.log(
-        `🌸 Momo: No music is waiting. Her ${IDLE_DISCONNECT_TIME / 60000}-minute idle timer has started.`
-    );
+   console.log(
+      `🌸 Momo: No music is waiting. Her ${IDLE_DISCONNECT_TIME / 60000}-minute idle timer has started.`
+   );
 
 
-    const timer =
-        setTimeout(
-            async () => {
+   const timer =
+      setTimeout(
+         async () => {
 
-                idleTimers.delete(
-                    guildId
-                );
-
-
-                const currentQueue =
-                    getQueue(guildId);
+               idleTimers.delete(
+                  guildId
+               );
 
 
-                if (
-                    !currentQueue ||
-                    currentQueue.deleted
-                ) {
-
-                    return;
-                }
+               const currentQueue =
+                  getQueue(guildId);
 
 
-                // ==========================================
-                // 🌸 MUSIC STARTED AGAIN
-                // ==========================================
+               if (
+                  !currentQueue ||
+                  currentQueue.deleted
+               ) {
 
-                if (
-                    currentQueue.currentTrack ||
-                    currentQueue.tracks.size > 0 ||
-                    currentQueue.node.isPlaying() ||
-                    currentQueue.node.isPaused()
-                ) {
-
-                    console.log(
-                        '🌸 Momo: Music is active again, so she is staying.'
-                    );
-
-                    return;
-                }
+                  return;
+               }
 
 
-                const channel =
-                    currentQueue.metadata?.channel;
+               // ==========================================
+               // 🌸 MUSIC STARTED AGAIN
+               // ==========================================
+
+               if (
+                  currentQueue.currentTrack ||
+                  currentQueue.tracks.size > 0 ||
+                  currentQueue.node.isPlaying() ||
+                  currentQueue.node.isPaused()
+               ) {
+
+                  console.log(
+                     '🌸 Momo: Music is active again, so she is staying.'
+                  );
+
+                  return;
+               }
 
 
-                console.log(
-                    `🌸 Momo: ${IDLE_DISCONNECT_TIME / 60000} minutes have passed without music.`
-                );
+               const channel =
+                  currentQueue.metadata?.channel;
 
 
-                clearRecoveryState(
-                    guildId
-                );
+               console.log(
+                  `🌸 Momo: ${IDLE_DISCONNECT_TIME / 60000} minutes have passed without music.`
+               );
 
 
-                currentQueue.delete();
+               clearRecoveryState(
+                  guildId
+               );
 
 
-                if (channel) {
+               currentQueue.delete();
 
-                    await channel
-                        .send(
-                            '🌸 Momo has been sitting quietly for a little while, ' +
-                            'so she’s heading home for now ♡\n\n' +
-                            '🎀 Just use `/play` whenever you want her back!'
+
+               if (channel) {
+
+                  await channel
+                     .send(
+                        '🌸 Momo has been sitting quietly for a little while, ' +
+                        'so she’s heading home for now ♡\n\n' +
+                        '🎀 Just use `/play` whenever you want her back!'
+                     )
+                     .catch(
+                        error =>
+                        console.error(
+                           '🌸 Momo: Could not send idle message.',
+                           error
                         )
-                        .catch(
-                            error =>
-                                console.error(
-                                    '🌸 Momo: Could not send idle message.',
-                                    error
-                                )
-                        );
-                }
+                     );
+               }
 
             },
             IDLE_DISCONNECT_TIME
-        );
+      );
 
 
-    idleTimers.set(
-        guildId,
-        timer
-    );
+   idleTimers.set(
+      guildId,
+      timer
+   );
 }
 
 
 function checkForIdleQueue(queue) {
 
-    if (
-        !queue ||
-        queue.deleted
-    ) {
-        return;
-    }
+   if (
+      !queue ||
+      queue.deleted
+   ) {
+      return;
+   }
 
 
-    const guildId =
-        queue.guild.id;
+   const guildId =
+      queue.guild.id;
 
 
-    const hasMusic =
-        queue.currentTrack ||
-        queue.tracks.size > 0 ||
-        queue.node.isPlaying() ||
-        queue.node.isPaused();
+   const hasMusic =
+      queue.currentTrack ||
+      queue.tracks.size > 0 ||
+      queue.node.isPlaying() ||
+      queue.node.isPaused();
 
 
-    if (hasMusic) {
+   if (hasMusic) {
 
-        clearIdleTimer(
-            guildId
-        );
+      clearIdleTimer(
+         guildId
+      );
 
-        return;
-    }
+      return;
+   }
 
 
-    startIdleTimer(
-        queue
-    );
+   startIdleTimer(
+      queue
+   );
 }
 
 
 function getVoiceChannel(interaction) {
 
-    return interaction.member?.voice?.channel;
+   return interaction.member?.voice?.channel;
 }
 
 
 function getQueueNumber(index) {
 
-    const numbers = [
-        '①',
-        '②',
-        '③',
-        '④',
-        '⑤',
-        '⑥',
-        '⑦',
-        '⑧',
-        '⑨',
-        '⑩'
-    ];
+   const numbers = [
+      '①',
+      '②',
+      '③',
+      '④',
+      '⑤',
+      '⑥',
+      '⑦',
+      '⑧',
+      '⑨',
+      '⑩'
+   ];
 
-    return numbers[index] || `${index + 1}.`;
+   return numbers[index] || `${index + 1}.`;
 }
 
 
@@ -413,30 +415,29 @@ function getQueueNumber(index) {
 
 function getNodeOptions(interaction) {
 
-    return {
+   return {
 
-        metadata: {
-            channel: interaction.channel
-        },
+      metadata: {
+         channel: interaction.channel
+      },
 
-        volume: 80,
+      volume: 80,
 
-        // Momo still leaves if everyone leaves
-        // the voice channel.
-        leaveOnEmpty: true,
+      // Momo still leaves if everyone leaves
+      // the voice channel.
+      leaveOnEmpty: true,
 
-        // Keep this consistent with Momo's
-        // 10-minute idle behavior.
-        leaveOnEmptyCooldown:
-            IDLE_DISCONNECT_TIME,
+      // Keep this consistent with Momo's
+      // 10-minute idle behavior.
+      leaveOnEmptyCooldown: IDLE_DISCONNECT_TIME,
 
-        // IMPORTANT:
-        //
-        // We disable Discord Player's built-in
-        // leave-on-end behavior because Momo now
-        // uses her own 10-minute idle timer.
-        leaveOnEnd: false
-    };
+      // IMPORTANT:
+      //
+      // We disable Discord Player's built-in
+      // leave-on-end behavior because Momo now
+      // uses her own 10-minute idle timer.
+      leaveOnEnd: false
+   };
 }
 
 
@@ -446,33 +447,33 @@ function getNodeOptions(interaction) {
 
 function createPlayerButtons() {
 
-    return new ActionRowBuilder()
-        .addComponents(
+   return new ActionRowBuilder()
+      .addComponents(
 
-            new ButtonBuilder()
-                .setCustomId('momo_pause')
-                .setLabel('Pause')
-                .setEmoji('⏸️')
-                .setStyle(ButtonStyle.Secondary),
+         new ButtonBuilder()
+         .setCustomId('momo_pause')
+         .setLabel('Pause')
+         .setEmoji('⏸️')
+         .setStyle(ButtonStyle.Secondary),
 
-            new ButtonBuilder()
-                .setCustomId('momo_resume')
-                .setLabel('Resume')
-                .setEmoji('▶️')
-                .setStyle(ButtonStyle.Success),
+         new ButtonBuilder()
+         .setCustomId('momo_resume')
+         .setLabel('Resume')
+         .setEmoji('▶️')
+         .setStyle(ButtonStyle.Success),
 
-            new ButtonBuilder()
-                .setCustomId('momo_skip')
-                .setLabel('Skip')
-                .setEmoji('⏭️')
-                .setStyle(ButtonStyle.Primary),
+         new ButtonBuilder()
+         .setCustomId('momo_skip')
+         .setLabel('Skip')
+         .setEmoji('⏭️')
+         .setStyle(ButtonStyle.Primary),
 
-            new ButtonBuilder()
-                .setCustomId('momo_stop')
-                .setLabel('Stop')
-                .setEmoji('⏹️')
-                .setStyle(ButtonStyle.Danger)
-        );
+         new ButtonBuilder()
+         .setCustomId('momo_stop')
+         .setLabel('Stop')
+         .setEmoji('⏹️')
+         .setStyle(ButtonStyle.Danger)
+      );
 }
 
 
@@ -482,54 +483,51 @@ function createPlayerButtons() {
 
 function createNowPlayingEmbed(track) {
 
-    return new EmbedBuilder()
+   return new EmbedBuilder()
 
-        .setColor(MOMO_COLOR)
+      .setColor(MOMO_COLOR)
 
-        .setAuthor({
-            name: MOMO_NAME
-        })
+      .setAuthor({
+         name: MOMO_NAME
+      })
 
-        .setTitle(
-            track.title || 'Momo is playing something lovely'
-        )
+      .setTitle(
+         track.title || 'Momo is playing something lovely'
+      )
 
-        .setDescription(
-            `**${track.author || 'Unknown Artist'}**\n\n` +
-            `🎶 Playing now in **${MOMO_CAFE}** ♡`
-        )
+      .setDescription(
+         `**${track.author || 'Unknown Artist'}**\n\n` +
+         `🎶 Playing now in **${MOMO_CAFE}** ♡`
+      )
 
-        .setThumbnail(
-            track.thumbnail || null
-        )
+      .setThumbnail(
+         track.thumbnail || null
+      )
 
-        .addFields(
+      .addFields(
 
-            {
-                name: '⏱️ Duration',
+         {
+            name: '⏱️ Duration',
 
-                value:
-                    track.duration ||
-                    'Momo is checking...',
+            value: track.duration ||
+               'Momo is checking...',
 
-                inline: true
-            },
+            inline: true
+         },
 
-            {
-                name: '🎧 Requested by',
+         {
+            name: '🎧 Requested by',
 
-                value:
-                    track.requestedBy?.toString() ||
-                    'A lovely listener',
+            value: track.requestedBy?.toString() ||
+               'A lovely listener',
 
-                inline: true
-            }
-        )
+            inline: true
+         }
+      )
 
-        .setFooter({
-            text:
-                '🌸 Momo Radio • Cherry Blossom Cafe'
-        });
+      .setFooter({
+         text: '🌸 Momo Radio • Cherry Blossom Cafe'
+      });
 }
 
 
@@ -538,81 +536,76 @@ function createNowPlayingEmbed(track) {
 // ======================================================
 
 function createSearchMenu(
-    searchId,
-    tracks,
-    placeholder = '🌸 Choose a song...'
+   searchId,
+   tracks,
+   placeholder = '🌸 Choose a song...'
 ) {
 
-    const menu =
-        new StringSelectMenuBuilder()
+   const menu =
+      new StringSelectMenuBuilder()
 
-            .setCustomId(searchId)
+      .setCustomId(searchId)
 
-            .setPlaceholder(
-                placeholder
-            )
+      .setPlaceholder(
+         placeholder
+      )
 
-            .addOptions(
+      .addOptions(
 
-                tracks.map(
-                    (track, index) => ({
+         tracks.map(
+            (track, index) => ({
 
-                        label:
-                            shorten(
-                                track.title
-                            ),
+               label: shorten(
+                  track.title
+               ),
 
-                        description:
-                            shorten(
-                                `${track.author || 'Unknown Artist'} • ` +
-                                `${track.duration || 'Unknown'}`
-                            ),
+               description: shorten(
+                  `${track.author || 'Unknown Artist'} • ` +
+                  `${track.duration || 'Unknown'}`
+               ),
 
-                        value:
-                            String(index)
-                    })
-                )
-            );
+               value: String(index)
+            })
+         )
+      );
 
-    return new ActionRowBuilder()
-        .addComponents(menu);
+   return new ActionRowBuilder()
+      .addComponents(menu);
 }
 
 
 function createSearchEmbed(
-    tracks,
-    title = '🌸 Momo found a few matches!'
+   tracks,
+   title = '🌸 Momo found a few matches!'
 ) {
 
-    return new EmbedBuilder()
+   return new EmbedBuilder()
 
-        .setColor(MOMO_COLOR)
+      .setColor(MOMO_COLOR)
 
-        .setAuthor({
-            name:
-                `${MOMO_NAME} • ${MOMO_CAFE}`
-        })
+      .setAuthor({
+         name: `${MOMO_NAME} • ${MOMO_CAFE}`
+      })
 
-        .setTitle(title)
+      .setTitle(title)
 
-        .setDescription(
+      .setDescription(
 
-            tracks
-                .map(
-                    (track, index) =>
+         tracks
+         .map(
+            (track, index) =>
 
-                        `**${index + 1}. ${shorten(track.title, 80)}**\n` +
-                        `${shorten(track.author || 'Unknown Artist', 70)} • ` +
-                        `${track.duration || 'Unknown'}`
-                )
+            `**${index + 1}. ${shorten(track.title, 80)}**\n` +
+            `${shorten(track.author || 'Unknown Artist', 70)} • ` +
+            `${track.duration || 'Unknown'}`
+         )
 
-                .join('\n\n')
-        )
+         .join('\n\n')
+      )
 
-        .setFooter({
-            text:
-                '🌸 Choose the version Momo should play'
-        });
+      .setFooter({
+         text: '🌸 Choose the version Momo should play'
+      });
 }
 
 
@@ -622,325 +615,320 @@ function createSearchEmbed(
 
 function createRecoveryState(track) {
 
-    return {
+   return {
 
-        attempts: 1,
+      attempts: 1,
 
-        triedIds: new Set([
-            track.id
-        ]),
+      triedIds: new Set([
+         track.id
+      ]),
 
-        query:
-            `${track.title || ''} ${track.author || ''}`.trim(),
+      query: `${track.title || ''} ${track.author || ''}`.trim(),
 
-        originalTitle:
-            track.title ||
-            'this song'
-    };
+      originalTitle: track.title ||
+         'this song'
+   };
 }
 
 
 function resetRecoveryState(
-    guildId,
-    track
+   guildId,
+   track
 ) {
 
-    recoveryStates.set(
-        guildId,
-        createRecoveryState(track)
-    );
+   recoveryStates.set(
+      guildId,
+      createRecoveryState(track)
+   );
 }
 
 
 function clearRecoveryState(guildId) {
 
-    recoveryStates.delete(
-        guildId
-    );
+   recoveryStates.delete(
+      guildId
+   );
 }
 
 
 async function recoverPlayback(
-    queue,
-    failedTrack,
-    reason = 'Unknown',
-    description = ''
+   queue,
+   failedTrack,
+   reason = 'Unknown',
+   description = ''
 ) {
 
-    if (
-        !queue ||
-        queue.deleted ||
-        !failedTrack
-    ) {
+   if (
+      !queue ||
+      queue.deleted ||
+      !failedTrack
+   ) {
 
-        return false;
-    }
-
-
-    const guildId =
-        queue.guild.id;
+      return false;
+   }
 
 
-    // ==================================================
-    // 🌸 PREVENT DOUBLE RECOVERY
-    // ==================================================
-
-    if (
-        recoveryInProgress.has(guildId)
-    ) {
-
-        return false;
-    }
+   const guildId =
+      queue.guild.id;
 
 
-    let state =
-        recoveryStates.get(
-            guildId
-        );
+   // ==================================================
+   // 🌸 PREVENT DOUBLE RECOVERY
+   // ==================================================
+
+   if (
+      recoveryInProgress.has(guildId)
+   ) {
+
+      return false;
+   }
 
 
-    if (!state) {
+   let state =
+      recoveryStates.get(
+         guildId
+      );
 
-        state =
-            createRecoveryState(
-                failedTrack
+
+   if (!state) {
+
+      state =
+         createRecoveryState(
+            failedTrack
+         );
+
+      recoveryStates.set(
+         guildId,
+         state
+      );
+   }
+
+
+   state.triedIds.add(
+      failedTrack.id
+   );
+
+
+   // ==================================================
+   // 🌸 TWO ATTEMPTS ONLY
+   // ==================================================
+
+   if (
+      state.attempts >=
+      MAX_PLAYBACK_ATTEMPTS
+   ) {
+
+      console.log(
+         `🌸 Momo: ${state.originalTitle} has already had ${MAX_PLAYBACK_ATTEMPTS} chances.`
+      );
+
+      clearRecoveryState(
+         guildId
+      );
+
+      const channel =
+         queue.metadata?.channel;
+
+      if (channel) {
+
+         await channel
+            .send(
+               `🌸 Momo tried her best with **${state.originalTitle}**, ` +
+               `but this version isn't cooperating.\n\n` +
+               `🎀 Momo is moving on to the next song ♡`
+            )
+            .catch(
+               error =>
+               console.error(
+                  '🌸 Momo: Could not send recovery message.',
+                  error
+               )
             );
+      }
 
-        recoveryStates.set(
-            guildId,
-            state
-        );
-    }
+      return false;
+   }
 
 
-    state.triedIds.add(
-        failedTrack.id
-    );
+   recoveryInProgress.add(
+      guildId
+   );
 
 
-    // ==================================================
-    // 🌸 TWO ATTEMPTS ONLY
-    // ==================================================
-
-    if (
-        state.attempts >=
-        MAX_PLAYBACK_ATTEMPTS
-    ) {
-
-        console.log(
-            `🌸 Momo: ${state.originalTitle} has already had ${MAX_PLAYBACK_ATTEMPTS} chances.`
-        );
-
-        clearRecoveryState(
-            guildId
-        );
-
-        const channel =
-            queue.metadata?.channel;
-
-        if (channel) {
-
-            await channel
-                .send(
-                    `🌸 Momo tried her best with **${state.originalTitle}**, ` +
-                    `but this version isn't cooperating.\n\n` +
-                    `🎀 Momo is moving on to the next song ♡`
-                )
-                .catch(
-                    error =>
-                        console.error(
-                            '🌸 Momo: Could not send recovery message.',
-                            error
-                        )
-                );
-        }
-
-        return false;
-    }
+   const channel =
+      queue.metadata?.channel;
 
 
-    recoveryInProgress.add(
-        guildId
-    );
+   try {
+
+      if (channel) {
+
+         await channel.send(
+            `🌸 **Momo is having a tiny bit of trouble with ` +
+            `${failedTrack.title}.**\n\n` +
+            `🎀 Let Momo try another version...`
+         );
+      }
 
 
-    const channel =
-        queue.metadata?.channel;
+      console.log(
+         `🌸 Momo: Looking for another version of "${state.query}".`
+      );
 
 
-    try {
+      const searchResult =
+         await player.search(
+            state.query, {
+               requestedBy: failedTrack.requestedBy,
 
-        if (channel) {
+               searchEngine: 'youtubeSearch'
+            }
+         );
+
+
+      if (
+         !searchResult ||
+         !searchResult.hasTracks()
+      ) {
+
+         console.log(
+            '🌸 Momo: No alternative version was found.'
+         );
+
+         if (channel) {
 
             await channel.send(
-                `🌸 **Momo is having a tiny bit of trouble with ` +
-                `${failedTrack.title}.**\n\n` +
-                `🎀 Let Momo try another version...`
+               `🌸 Momo looked everywhere she could, ` +
+               `but couldn't find another version of ` +
+               `**${state.originalTitle}**.\n\n` +
+               `🎀 Momo will continue with the next song ♡`
             );
-        }
+         }
+
+         clearRecoveryState(
+            guildId
+         );
+
+         return false;
+      }
 
 
-        console.log(
-            `🌸 Momo: Looking for another version of "${state.query}".`
-        );
+      const alternative =
+         searchResult.tracks.find(
+            track =>
+            !state.triedIds.has(
+               track.id
+            )
+         );
 
 
-        const searchResult =
-            await player.search(
-                state.query,
-                {
-                    requestedBy:
-                        failedTrack.requestedBy,
+      if (!alternative) {
 
-                    searchEngine:
-                        'youtubeSearch'
-                }
-            );
+         console.log(
+            '🌸 Momo: All alternative search results had already been tried.'
+         );
 
-
-        if (
-            !searchResult ||
-            !searchResult.hasTracks()
-        ) {
-
-            console.log(
-                '🌸 Momo: No alternative version was found.'
-            );
-
-            if (channel) {
-
-                await channel.send(
-                    `🌸 Momo looked everywhere she could, ` +
-                    `but couldn't find another version of ` +
-                    `**${state.originalTitle}**.\n\n` +
-                    `🎀 Momo will continue with the next song ♡`
-                );
-            }
-
-            clearRecoveryState(
-                guildId
-            );
-
-            return false;
-        }
-
-
-        const alternative =
-            searchResult.tracks.find(
-                track =>
-                    !state.triedIds.has(
-                        track.id
-                    )
-            );
-
-
-        if (!alternative) {
-
-            console.log(
-                '🌸 Momo: All alternative search results had already been tried.'
-            );
-
-            if (channel) {
-
-                await channel.send(
-                    `🌸 Momo couldn't find a different version of ` +
-                    `**${state.originalTitle}**.\n\n` +
-                    `🎀 Let's move on to the next song ♡`
-                );
-            }
-
-            clearRecoveryState(
-                guildId
-            );
-
-            return false;
-        }
-
-
-        // ==================================================
-        // 🌸 ATTEMPT #2
-        // ==================================================
-
-        state.attempts += 1;
-
-        state.triedIds.add(
-            alternative.id
-        );
-
-
-        console.log(
-            `🌸 Momo: Recovery attempt ${state.attempts}/${MAX_PLAYBACK_ATTEMPTS} — ${alternative.title}`
-        );
-
-
-        if (channel) {
+         if (channel) {
 
             await channel.send(
-                `🌸 **Momo found another version!**\n\n` +
-                `🎶 **${shorten(alternative.title, 80)}**\n` +
-                `🎧 ${shorten(
+               `🌸 Momo couldn't find a different version of ` +
+               `**${state.originalTitle}**.\n\n` +
+               `🎀 Let's move on to the next song ♡`
+            );
+         }
+
+         clearRecoveryState(
+            guildId
+         );
+
+         return false;
+      }
+
+
+      // ==================================================
+      // 🌸 ATTEMPT #2
+      // ==================================================
+
+      state.attempts += 1;
+
+      state.triedIds.add(
+         alternative.id
+      );
+
+
+      console.log(
+         `🌸 Momo: Recovery attempt ${state.attempts}/${MAX_PLAYBACK_ATTEMPTS} — ${alternative.title}`
+      );
+
+
+      if (channel) {
+
+         await channel.send(
+            `🌸 **Momo found another version!**\n\n` +
+            `🎶 **${shorten(alternative.title, 80)}**\n` +
+            `🎧 ${shorten(
                     alternative.author ||
                     'Unknown Artist',
                     70
                 )}\n\n` +
-                `♡ Momo will give this one a try...`
+            `♡ Momo will give this one a try...`
+         );
+      }
+
+
+      // ==================================================
+      // 🌸 PUT ALTERNATIVE AT FRONT
+      // ==================================================
+
+      queue.insertTrack(
+         alternative,
+         0
+      );
+
+
+      if (!queue.isPlaying()) {
+
+         await queue.node.play();
+      }
+
+
+      return true;
+
+   } catch (error) {
+
+      console.error(
+         '🌸 Momo: Something went wrong while looking for another version.',
+         error
+      );
+
+      clearRecoveryState(
+         guildId
+      );
+
+      if (channel) {
+
+         await channel
+            .send(
+               `🌸 Momo couldn't find a working version this time.\n\n` +
+               `🎀 Don't worry — Momo will continue with the next song ♡`
+            )
+            .catch(
+               sendError =>
+               console.error(
+                  '🌸 Momo: Could not send recovery message.',
+                  sendError
+               )
             );
-        }
+      }
 
+      return false;
 
-        // ==================================================
-        // 🌸 PUT ALTERNATIVE AT FRONT
-        // ==================================================
+   } finally {
 
-        queue.insertTrack(
-            alternative,
-            0
-        );
-
-
-        if (!queue.isPlaying()) {
-
-            await queue.node.play();
-        }
-
-
-        return true;
-
-    } catch (error) {
-
-        console.error(
-            '🌸 Momo: Something went wrong while looking for another version.',
-            error
-        );
-
-        clearRecoveryState(
-            guildId
-        );
-
-        if (channel) {
-
-            await channel
-                .send(
-                    `🌸 Momo couldn't find a working version this time.\n\n` +
-                    `🎀 Don't worry — Momo will continue with the next song ♡`
-                )
-                .catch(
-                    sendError =>
-                        console.error(
-                            '🌸 Momo: Could not send recovery message.',
-                            sendError
-                        )
-                );
-        }
-
-        return false;
-
-    } finally {
-
-        recoveryInProgress.delete(
-            guildId
-        );
-    }
+      recoveryInProgress.delete(
+         guildId
+      );
+   }
 }
 
 
@@ -950,48 +938,47 @@ async function recoverPlayback(
 
 async function loadExtractors() {
 
-    console.log(
-        '🌸 Momo is preparing her music library...'
-    );
+   console.log(
+      '🌸 Momo is preparing her music library...'
+   );
 
-    try {
+   try {
 
-        await player.extractors.loadMulti(
-            DefaultExtractors
-        );
-
-
-        await player.extractors.register(
-            YouTubeDlpExtractor,
-            {
-                agent: {
-                    autoCookiesFromBrowser: false
-                },
-
-                searchLimit: 5,
-
-                searchTimeoutMs: 15000,
-
-                videoTimeoutMs: 15000,
-
-                debug: false
-            }
-        );
+      await player.extractors.loadMulti(
+         DefaultExtractors
+      );
 
 
-        console.log(
-            '🌸 Momo has finished preparing her music library ♡'
-        );
+      await player.extractors.register(
+         YouTubeDlpExtractor, {
+            agent: {
+               autoCookiesFromBrowser: false
+            },
 
-    } catch (error) {
+            searchLimit: 5,
 
-        console.error(
-            '🌸 Momo: Her music library could not be prepared.',
-            error
-        );
+            searchTimeoutMs: 15000,
 
-        throw error;
-    }
+            videoTimeoutMs: 15000,
+
+            debug: false
+         }
+      );
+
+
+      console.log(
+         '🌸 Momo has finished preparing her music library ♡'
+      );
+
+   } catch (error) {
+
+      console.error(
+         '🌸 Momo: Her music library could not be prepared.',
+         error
+      );
+
+      throw error;
+   }
 }
 
 
@@ -1000,44 +987,44 @@ async function loadExtractors() {
 // ======================================================
 
 client.once(
-    Events.ClientReady,
-    async () => {
+   Events.ClientReady,
+   async () => {
 
-        console.log(
-            `🌸 Momo Radio is awake and online as ${client.user.tag} ♡`
-        );
+      console.log(
+         `🌸 Momo Radio is awake and online as ${client.user.tag} ♡`
+      );
 
-        console.log(
-            `🌸 Momo's little process number is ${process.pid}.`
-        );
-
-
-        console.log(
-            '🌸 Momo is checking that all her music friends are ready...'
-        );
+      console.log(
+         `🌸 Momo's little process number is ${process.pid}.`
+      );
 
 
-        try {
-
-            player.scanDeps();
-
-            console.log(
-                '🌸 Momo checked her music friends and everything looks ready ♡'
-            );
-
-        } catch (error) {
-
-            console.error(
-                '🌸 Momo: One of her music friends could not be checked.',
-                error
-            );
-        }
+      console.log(
+         '🌸 Momo is checking that all her music friends are ready...'
+      );
 
 
-        console.log(
-            '🌸 Momo is ready for the Cherry Blossom Cafe ♡'
-        );
-    }
+      try {
+
+         player.scanDeps();
+
+         console.log(
+            '🌸 Momo checked her music friends and everything looks ready ♡'
+         );
+
+      } catch (error) {
+
+         console.error(
+            '🌸 Momo: One of her music friends could not be checked.',
+            error
+         );
+      }
+
+
+      console.log(
+         '🌸 Momo is ready for the Cherry Blossom Cafe ♡'
+      );
+   }
 );
 
 
@@ -1046,148 +1033,148 @@ client.once(
 // ======================================================
 
 player.events.on(
-    'playerStart',
-    (queue, track) => {
+   'playerStart',
+   (queue, track) => {
 
-        // A song is playing again,
-        // so there is no reason for Momo's idle timer.
-        clearIdleTimer(
+      // A song is playing again,
+      // so there is no reason for Momo's idle timer.
+      clearIdleTimer(
+         queue.guild.id
+      );
+
+
+      const channel =
+         queue.metadata?.channel;
+
+
+      // ==================================================
+      // 🌸 NEW SONG OR RECOVERY?
+      // ==================================================
+
+      const recovery =
+         recoveryStates.get(
             queue.guild.id
-        );
+         );
 
 
-        const channel =
-            queue.metadata?.channel;
+      if (
+         !recovery ||
+         !recovery.triedIds.has(
+            track.id
+         )
+      ) {
+
+         resetRecoveryState(
+            queue.guild.id,
+            track
+         );
+      }
 
 
-        // ==================================================
-        // 🌸 NEW SONG OR RECOVERY?
-        // ==================================================
-
-        const recovery =
-            recoveryStates.get(
-                queue.guild.id
-            );
+      console.log(
+         `🌸 Momo is now playing: ${track.title}`
+      );
 
 
-        if (
-            !recovery ||
-            !recovery.triedIds.has(
-                track.id
+      if (!channel) {
+         return;
+      }
+
+
+      const embed =
+         createNowPlayingEmbed(
+            track
+         );
+
+
+      const buttons =
+         createPlayerButtons();
+
+
+      channel
+         .send({
+            embeds: [embed],
+            components: [buttons]
+         })
+         .catch(
+            error =>
+            console.error(
+               '🌸 Momo: Could not send the now-playing message.',
+               error
             )
-        ) {
-
-            resetRecoveryState(
-                queue.guild.id,
-                track
-            );
-        }
+         );
 
 
-        console.log(
-            `🌸 Momo is now playing: ${track.title}`
-        );
+      // ==================================================
+      // 🌸 EARLY STREAM FAILURE DETECTOR
+      // ==================================================
+
+      const startedTrackId =
+         track.id;
 
 
-        if (!channel) {
-            return;
-        }
+      setTimeout(
+         async () => {
+
+               const currentTrack =
+                  queue.currentTrack;
+
+               const stillPlaying =
+                  queue.node.isPlaying();
+
+               const sameTrack =
+                  currentTrack &&
+                  currentTrack.id ===
+                  startedTrackId;
 
 
-        const embed =
-            createNowPlayingEmbed(
-                track
-            );
+               if (
+                  sameTrack &&
+                  stillPlaying
+               ) {
+
+                  return;
+               }
 
 
-        const buttons =
-            createPlayerButtons();
+               // ==================================================
+               // 🌸 INTENTIONAL SKIP / STOP?
+               // ==================================================
+
+               if (
+                  intentionallyStoppedTracks.has(
+                     startedTrackId
+                  )
+               ) {
+
+                  intentionallyStoppedTracks.delete(
+                     startedTrackId
+                  );
+
+                  return;
+               }
 
 
-        channel
-            .send({
-                embeds: [embed],
-                components: [buttons]
-            })
-            .catch(
-                error =>
-                    console.error(
-                        '🌸 Momo: Could not send the now-playing message.',
-                        error
-                    )
-            );
+               // ==================================================
+               // 🌸 UNEXPECTED EARLY FAILURE
+               // ==================================================
+
+               console.log(
+                  `🌸 Momo noticed that "${track.title}" stopped very quickly.`
+               );
 
 
-        // ==================================================
-        // 🌸 EARLY STREAM FAILURE DETECTOR
-        // ==================================================
-
-        const startedTrackId =
-            track.id;
-
-
-        setTimeout(
-            async () => {
-
-                const currentTrack =
-                    queue.currentTrack;
-
-                const stillPlaying =
-                    queue.node.isPlaying();
-
-                const sameTrack =
-                    currentTrack &&
-                    currentTrack.id ===
-                        startedTrackId;
-
-
-                if (
-                    sameTrack &&
-                    stillPlaying
-                ) {
-
-                    return;
-                }
-
-
-                // ==================================================
-                // 🌸 INTENTIONAL SKIP / STOP?
-                // ==================================================
-
-                if (
-                    intentionallyStoppedTracks.has(
-                        startedTrackId
-                    )
-                ) {
-
-                    intentionallyStoppedTracks.delete(
-                        startedTrackId
-                    );
-
-                    return;
-                }
-
-
-                // ==================================================
-                // 🌸 UNEXPECTED EARLY FAILURE
-                // ==================================================
-
-                console.log(
-                    `🌸 Momo noticed that "${track.title}" stopped very quickly.`
-                );
-
-
-                await recoverPlayback(
-                    queue,
-                    track,
-                    'EARLY_STOP',
-                    'Momo noticed the song stopped almost immediately.'
-                );
+               await recoverPlayback(
+                  queue,
+                  track,
+                  'EARLY_STOP',
+                  'Momo noticed the song stopped almost immediately.'
+               );
 
             },
             3000
-        );
-    }
+      );
+   }
 );
 
 
@@ -1196,58 +1183,58 @@ player.events.on(
 // ======================================================
 
 player.events.on(
-    'playerError',
-    async (
-        queue,
-        error,
-        track
-    ) => {
+   'playerError',
+   async (
+      queue,
+      error,
+      track
+   ) => {
 
-        console.error(
-            '🌸 Momo: A music stream became unavailable.',
-            error
-        );
-
-
-        const failedTrack =
-            track ||
-            queue.currentTrack;
+      console.error(
+         '🌸 Momo: A music stream became unavailable.',
+         error
+      );
 
 
-        if (!failedTrack) {
-
-            const channel =
-                queue.metadata?.channel;
-
-
-            if (channel) {
-
-                await channel
-                    .send(
-                        `🌸 Momo couldn't keep the music going just now.\n\n` +
-                        `🎀 Momo will continue with the next song ♡`
-                    )
-                    .catch(
-                        sendError =>
-                            console.error(
-                                '🌸 Momo: Could not send player message.',
-                                sendError
-                            )
-                    );
-            }
-
-            return;
-        }
+      const failedTrack =
+         track ||
+         queue.currentTrack;
 
 
-        await recoverPlayback(
-            queue,
-            failedTrack,
-            'PLAYER_ERROR',
-            error?.message ||
-            'Momo received an unexpected playback problem.'
-        );
-    }
+      if (!failedTrack) {
+
+         const channel =
+            queue.metadata?.channel;
+
+
+         if (channel) {
+
+            await channel
+               .send(
+                  `🌸 Momo couldn't keep the music going just now.\n\n` +
+                  `🎀 Momo will continue with the next song ♡`
+               )
+               .catch(
+                  sendError =>
+                  console.error(
+                     '🌸 Momo: Could not send player message.',
+                     sendError
+                  )
+               );
+         }
+
+         return;
+      }
+
+
+      await recoverPlayback(
+         queue,
+         failedTrack,
+         'PLAYER_ERROR',
+         error?.message ||
+         'Momo received an unexpected playback problem.'
+      );
+   }
 );
 
 
@@ -1256,166 +1243,166 @@ player.events.on(
 // ======================================================
 
 player.events.on(
-    'playerSkip',
-    async (
-        queue,
-        track,
-        reason,
-        description
-    ) => {
+   'playerSkip',
+   async (
+      queue,
+      track,
+      reason,
+      description
+   ) => {
 
-        if (!track) {
-            return;
-        }
-
-
-        const channel =
-            queue.metadata?.channel;
+      if (!track) {
+         return;
+      }
 
 
-        // ==================================================
-        // ⏭ INTENTIONAL SKIP
-        // ==================================================
+      const channel =
+         queue.metadata?.channel;
 
-        if (
-            reason === 'MANUAL'
-        ) {
 
-            const skipReason =
-                intentionallyStoppedTracks.get(
-                    track.id
-                );
+      // ==================================================
+      // ⏭ INTENTIONAL SKIP
+      // ==================================================
 
+      if (
+         reason === 'MANUAL'
+      ) {
+
+         const skipReason =
+            intentionallyStoppedTracks.get(
+               track.id
+            );
+
+
+         console.log(
+            `🌸 Momo skipped: ${track.title}`
+         );
+
+
+         if (skipReason) {
 
             console.log(
-                `🌸 Momo skipped: ${track.title}`
+               `🌸 Momo knows this was intentional: ${skipReason}.`
+            );
+         }
+
+
+         // We no longer need to remember this track.
+         intentionallyStoppedTracks.delete(
+            track.id
+         );
+
+
+         if (channel) {
+
+            const message =
+               `⏭️ Momo skipped **${track.title}** ♡`;
+
+
+            channel
+               .send(message)
+               .catch(
+                  error =>
+                  console.error(
+                     '🌸 Momo: Could not send skip message.',
+                     error
+                  )
+               );
+         }
+
+
+         // ==================================================
+         // 🌸 IMPORTANT
+         // ==================================================
+         //
+         // If there is no next song, start the custom
+         // 10-minute idle timer.
+         //
+         // We wait a moment because Discord Player may
+         // still be updating the queue after skip().
+         // ==================================================
+
+         setTimeout(
+            () => {
+
+               const currentQueue =
+                  getQueue(
+                     queue.guild.id
+                  );
+
+
+               if (
+                  currentQueue &&
+                  !currentQueue.currentTrack &&
+                  currentQueue.tracks.size === 0
+               ) {
+
+                  startIdleTimer(
+                     currentQueue
+                  );
+               }
+
+            },
+            500
+         );
+
+
+         return;
+      }
+
+
+      // ==================================================
+      // 🌸 ACTUAL PLAYBACK FAILURE
+      // ==================================================
+
+      console.log(
+         `🌸 Momo couldn't keep "${track.title}" playing.`
+      );
+
+      console.log(
+         `🌸 Momo received playback reason: ${reason}`
+      );
+
+      console.log(
+         `🌸 Momo received playback details: ${description || 'No additional details.'}`
+      );
+
+
+      // ==================================================
+      // 🌸 AUTOMATIC RECOVERY
+      // ==================================================
+
+      const recovered =
+         await recoverPlayback(
+            queue,
+            track,
+            reason,
+            description
+         );
+
+
+      if (
+         !recovered
+      ) {
+
+         const currentQueue =
+            getQueue(
+               queue.guild.id
             );
 
 
-            if (skipReason) {
+         if (
+            currentQueue &&
+            !currentQueue.currentTrack &&
+            currentQueue.tracks.size === 0
+         ) {
 
-                console.log(
-                    `🌸 Momo knows this was intentional: ${skipReason}.`
-                );
-            }
-
-
-            // We no longer need to remember this track.
-            intentionallyStoppedTracks.delete(
-                track.id
+            startIdleTimer(
+               currentQueue
             );
-
-
-            if (channel) {
-
-                const message =
-                    `⏭️ Momo skipped **${track.title}** ♡`;
-
-
-                channel
-                    .send(message)
-                    .catch(
-                        error =>
-                            console.error(
-                                '🌸 Momo: Could not send skip message.',
-                                error
-                            )
-                    );
-            }
-
-
-            // ==================================================
-            // 🌸 IMPORTANT
-            // ==================================================
-            //
-            // If there is no next song, start the custom
-            // 10-minute idle timer.
-            //
-            // We wait a moment because Discord Player may
-            // still be updating the queue after skip().
-            // ==================================================
-
-            setTimeout(
-                () => {
-
-                    const currentQueue =
-                        getQueue(
-                            queue.guild.id
-                        );
-
-
-                    if (
-                        currentQueue &&
-                        !currentQueue.currentTrack &&
-                        currentQueue.tracks.size === 0
-                    ) {
-
-                        startIdleTimer(
-                            currentQueue
-                        );
-                    }
-
-                },
-                500
-            );
-
-
-            return;
-        }
-
-
-        // ==================================================
-        // 🌸 ACTUAL PLAYBACK FAILURE
-        // ==================================================
-
-        console.log(
-            `🌸 Momo couldn't keep "${track.title}" playing.`
-        );
-
-        console.log(
-            `🌸 Momo received playback reason: ${reason}`
-        );
-
-        console.log(
-            `🌸 Momo received playback details: ${description || 'No additional details.'}`
-        );
-
-
-        // ==================================================
-        // 🌸 AUTOMATIC RECOVERY
-        // ==================================================
-
-        const recovered =
-            await recoverPlayback(
-                queue,
-                track,
-                reason,
-                description
-            );
-
-
-        if (
-            !recovered
-        ) {
-
-            const currentQueue =
-                getQueue(
-                    queue.guild.id
-                );
-
-
-            if (
-                currentQueue &&
-                !currentQueue.currentTrack &&
-                currentQueue.tracks.size === 0
-            ) {
-
-                startIdleTimer(
-                    currentQueue
-                );
-            }
-        }
-    }
+         }
+      }
+   }
 );
 
 
@@ -1424,44 +1411,44 @@ player.events.on(
 // ======================================================
 
 player.events.on(
-    'playerFinish',
-    queue => {
+   'playerFinish',
+   queue => {
 
-        if (
-            !queue ||
-            queue.deleted
-        ) {
-            return;
-        }
-
-
-        const hasUpcomingSongs =
-            queue.tracks.size > 0;
+      if (
+         !queue ||
+         queue.deleted
+      ) {
+         return;
+      }
 
 
-        // If another song is waiting,
-        // there is no idle period.
-        if (
-            hasUpcomingSongs
-        ) {
-
-            clearIdleTimer(
-                queue.guild.id
-            );
-
-            return;
-        }
+      const hasUpcomingSongs =
+         queue.tracks.size > 0;
 
 
-        console.log(
-            '🌸 Momo: The playlist has finished. She is starting her idle timer.'
-        );
+      // If another song is waiting,
+      // there is no idle period.
+      if (
+         hasUpcomingSongs
+      ) {
+
+         clearIdleTimer(
+            queue.guild.id
+         );
+
+         return;
+      }
 
 
-        startIdleTimer(
-            queue
-        );
-    }
+      console.log(
+         '🌸 Momo: The playlist has finished. She is starting her idle timer.'
+      );
+
+
+      startIdleTimer(
+         queue
+      );
+   }
 );
 
 
@@ -1470,14 +1457,14 @@ player.events.on(
 // ======================================================
 
 player.events.on(
-    'error',
-    (queue, error) => {
+   'error',
+   (queue, error) => {
 
-        console.error(
-            '🌸 Momo: Something unexpected happened with a music queue.',
-            error
-        );
-    }
+      console.error(
+         '🌸 Momo: Something unexpected happened with a music queue.',
+         error
+      );
+   }
 );
 
 
@@ -1486,1792 +1473,1721 @@ player.events.on(
 // ======================================================
 
 client.on(
-    Events.InteractionCreate,
-    async interaction => {
+   Events.InteractionCreate,
+   async interaction => {
 
-        // ==================================================
-        // 🌸 SONG SEARCH DROPDOWN
-        // ==================================================
+      // ==================================================
+      // 🌸 SONG SEARCH DROPDOWN
+      // ==================================================
 
-        if (
-            interaction.isStringSelectMenu() &&
-            interaction.customId.startsWith(
-                'momo_search_'
-            )
-        ) {
+      if (
+         interaction.isStringSelectMenu() &&
+         interaction.customId.startsWith(
+            'momo_search_'
+         )
+      ) {
 
-            const search =
-                pendingSearches.get(
-                    interaction.customId
-                );
+         const search =
+            pendingSearches.get(
+               interaction.customId
+            );
 
 
-            if (!search) {
+         if (!search) {
 
-                await interaction.reply({
+            await interaction.reply({
 
-                    content:
-                        '🌸 Momo’s song menu has gone to sleep.\n\n' +
-                        '🎀 Try `/play` again and Momo will search for it ♡',
+               content: '🌸 Momo’s song menu has gone to sleep.\n\n' +
+                  '🎀 Try `/play` again and Momo will search for it ♡',
 
-                    flags:
-                        MessageFlags.Ephemeral
-                });
+               flags: MessageFlags.Ephemeral
+            });
 
-                return;
+            return;
+         }
+
+
+         if (
+            interaction.user.id !==
+            search.userId
+         ) {
+
+            await interaction.reply({
+
+               content: '🌸 This little song menu belongs to the person who asked Momo to search ♡',
+
+               flags: MessageFlags.Ephemeral
+            });
+
+            return;
+         }
+
+
+         const selectedIndex =
+            Number(
+               interaction.values[0]
+            );
+
+
+         const selectedTrack =
+            search.tracks[
+               selectedIndex
+            ];
+
+
+         if (!selectedTrack) {
+
+            await interaction.reply({
+
+               content: '🌸 Momo lost sight of that song selection.\n\n' +
+                  '🎀 Please use `/play` again ♡',
+
+               flags: MessageFlags.Ephemeral
+            });
+
+            return;
+         }
+
+
+         const voiceChannel =
+            interaction.guild.channels.cache.get(
+               search.voiceChannelId
+            );
+
+
+         if (!voiceChannel) {
+
+            await interaction.reply({
+
+               content: '🌸 Momo can’t find the voice room anymore.\n\n' +
+                  '🎀 Join a voice channel and ask Momo again ♡',
+
+               flags: MessageFlags.Ephemeral
+            });
+
+            return;
+         }
+
+
+         await interaction.deferUpdate();
+
+
+         try {
+
+            const result =
+               await player.play(
+                  voiceChannel,
+                  selectedTrack, {
+
+                     requestedBy: interaction.user,
+
+                     nodeOptions: getNodeOptions(
+                        interaction
+                     )
+                  }
+               );
+
+
+            // A new song has successfully been
+            // added, so cancel any idle timer.
+            clearIdleTimer(
+               interaction.guild.id
+            );
+
+
+            console.log(
+               `🌸 Momo added: ${result.track.title}`
+            );
+
+
+            pendingSearches.delete(
+               interaction.customId
+            );
+
+
+            await interaction.editReply({
+
+               content: `🌸 **Momo added it to the cafe playlist!**\n\n` +
+                  `🎶 **${result.track.title}**\n` +
+                  `🎧 ${result.track.author || 'Unknown Artist'}\n\n` +
+                  `♡ Enjoy the music!`,
+
+               embeds: [],
+
+               components: []
+            });
+
+
+         } catch (error) {
+
+            console.error(
+               '🌸 Momo: Something went wrong with the selected song.',
+               error
+            );
+
+
+            await interaction.editReply({
+
+               content: '🌸 Momo couldn’t start that version.\n\n' +
+                  '🎀 Try choosing another one from the list ♡',
+
+               embeds: [],
+
+               components: []
+            });
+         }
+
+
+         return;
+      }
+
+
+      // ==================================================
+      // 🌸 BUTTONS
+      // ==================================================
+
+      if (
+         interaction.isButton()
+      ) {
+
+         const queue =
+            getQueue(
+               interaction.guild.id
+            );
+
+
+         if (!queue) {
+
+            await interaction.reply({
+
+               content: '🌸 Momo isn’t playing anything right now ♡',
+
+               flags: MessageFlags.Ephemeral
+            });
+
+            return;
+         }
+
+
+         try {
+
+            // ==========================================
+            // ⏸ PAUSE
+            // ==========================================
+
+            if (
+               interaction.customId ===
+               'momo_pause'
+            ) {
+
+               if (
+                  !queue.isPlaying()
+               ) {
+
+                  await interaction.reply({
+
+                     content: '🌸 Momo isn’t playing anything at the moment ♡',
+
+                     flags: MessageFlags.Ephemeral
+                  });
+
+                  return;
+               }
+
+
+               queue.node.setPaused(
+                  true
+               );
+
+
+               await interaction.reply({
+
+                  content: '⏸️ Momo tucked the music into a little pause ♡',
+
+                  flags: MessageFlags.Ephemeral
+               });
+
+               return;
             }
+
+
+            // ==========================================
+            // ▶ RESUME
+            // ==========================================
+
+            if (
+               interaction.customId ===
+               'momo_resume'
+            ) {
+
+               if (
+                  !queue.node.isPaused()
+               ) {
+
+                  await interaction.reply({
+
+                     content: '🌸 Momo’s music is already playing ♡',
+
+                     flags: MessageFlags.Ephemeral
+                  });
+
+                  return;
+               }
+
+
+               queue.node.setPaused(
+                  false
+               );
+
+
+               await interaction.reply({
+
+                  content: '▶️ Momo is playing again ♡',
+
+                  flags: MessageFlags.Ephemeral
+               });
+
+               return;
+            }
+
+
+            // ==========================================
+            // ⏭ SKIP
+            // ==========================================
+
+            if (
+               interaction.customId ===
+               'momo_skip'
+            ) {
+
+               if (
+                  !queue.isPlaying()
+               ) {
+
+                  await interaction.reply({
+
+                     content: '🌸 Momo isn’t playing anything right now ♡',
+
+                     flags: MessageFlags.Ephemeral
+                  });
+
+                  return;
+               }
+
+
+               const currentTrack =
+                  queue.currentTrack;
+
+
+               if (currentTrack) {
+
+                  intentionallyStoppedTracks.set(
+                     currentTrack.id,
+                     'button'
+                  );
+
+
+                  clearRecoveryState(
+                     queue.guild.id
+                  );
+               }
+
+
+               // A skip is no longer an idle state.
+               // Cancel any old timer before changing
+               // the queue.
+               clearIdleTimer(
+                  queue.guild.id
+               );
+
+
+               queue.node.skip();
+
+
+               await interaction.reply({
+
+                  content: '⏭️ Momo skipped the song ♡',
+
+                  flags: MessageFlags.Ephemeral
+               });
+
+
+               return;
+            }
+
+
+            // ==========================================
+            // ⏹ STOP
+            // ==========================================
+
+            if (
+               interaction.customId ===
+               'momo_stop'
+            ) {
+
+               const currentTrack =
+                  queue.currentTrack;
+
+
+               if (currentTrack) {
+
+                  intentionallyStoppedTracks.set(
+                     currentTrack.id,
+                     'stop'
+                  );
+
+
+                  clearRecoveryState(
+                     queue.guild.id
+                  );
+               }
+
+
+               // IMPORTANT:
+               // Stop means the user intentionally
+               // removed Momo, so cancel the timer too.
+               clearIdleTimer(
+                  queue.guild.id
+               );
+
+
+               queue.delete();
+
+
+               await interaction.reply({
+
+                  content: '⏹️ Momo stopped the music and cleared her playlist ♡',
+
+                  flags: MessageFlags.Ephemeral
+               });
+
+               return;
+            }
+
+         } catch (error) {
+
+            console.error(
+               '🌸 Momo: Something went wrong with a music button.',
+               error
+            );
 
 
             if (
-                interaction.user.id !==
-                search.userId
+               !interaction.replied
             ) {
 
-                await interaction.reply({
+               await interaction
+                  .reply({
 
-                    content:
-                        '🌸 This little song menu belongs to the person who asked Momo to search ♡',
+                     content: '🌸 Momo couldn’t do that just now.\n\n' +
+                        '🎀 Please try again in a moment ♡',
 
-                    flags:
-                        MessageFlags.Ephemeral
-                });
+                     flags: MessageFlags.Ephemeral
 
-                return;
+                  })
+                  .catch(
+                     sendError =>
+                     console.error(
+                        '🌸 Momo: Could not send button response.',
+                        sendError
+                     )
+                  );
             }
+         }
 
 
-            const selectedIndex =
-                Number(
-                    interaction.values[0]
-                );
+         return;
+      }
 
 
-            const selectedTrack =
-                search.tracks[
-                    selectedIndex
-                ];
+      // ==================================================
+      // 🌸 SLASH COMMANDS
+      // ==================================================
+
+      if (
+         !interaction.isChatInputCommand()
+      ) {
+
+         return;
+      }
 
 
-            if (!selectedTrack) {
+      const command =
+         interaction.commandName;
 
-                await interaction.reply({
 
-                    content:
-                        '🌸 Momo lost sight of that song selection.\n\n' +
-                        '🎀 Please use `/play` again ♡',
+      try {
 
-                    flags:
-                        MessageFlags.Ephemeral
-                });
+         // ==================================================
+         // 🌸 HELLO
+         // ==================================================
 
-                return;
-            }
+         if (
+            command === 'hello'
+         ) {
 
+            await safeReply(
+               interaction,
+
+               '🌸 **Momo Radio is on air!**\n' +
+               '🎶 Momo is ready to bring some music to Cherry Blossom Cafe ♡'
+            );
+
+            return;
+         }
+
+
+         // ==================================================
+         // 🧪 TEST MP3
+         // ==================================================
+
+         if (
+            command === 'test'
+         ) {
 
             const voiceChannel =
-                interaction.guild.channels.cache.get(
-                    search.voiceChannelId
-                );
+               getVoiceChannel(
+                  interaction
+               );
 
 
             if (!voiceChannel) {
 
-                await interaction.reply({
+               await interaction.reply(
+                  '🌸 Momo needs you in a voice channel first ♡'
+               );
 
-                    content:
-                        '🌸 Momo can’t find the voice room anymore.\n\n' +
-                        '🎀 Join a voice channel and ask Momo again ♡',
-
-                    flags:
-                        MessageFlags.Ephemeral
-                });
-
-                return;
+               return;
             }
 
 
-            await interaction.deferUpdate();
+            await interaction.deferReply();
 
 
-            try {
+            const connection =
+               joinVoiceChannel({
 
-                const result =
-                    await player.play(
-                        voiceChannel,
-                        selectedTrack,
-                        {
+                  channelId: voiceChannel.id,
 
-                            requestedBy:
-                                interaction.user,
+                  guildId: interaction.guild.id,
 
-                            nodeOptions:
-                                getNodeOptions(
-                                    interaction
-                                )
-                        }
-                    );
+                  adapterCreator: interaction.guild.voiceAdapterCreator
+               });
 
 
-                // A new song has successfully been
-                // added, so cancel any idle timer.
-                clearIdleTimer(
-                    interaction.guild.id
-                );
+            await entersState(
+
+               connection,
+
+               VoiceConnectionStatus.Ready,
+
+               15000
+            );
 
 
-                console.log(
-                    `🌸 Momo added: ${result.track.title}`
-                );
+            const audioPlayer =
+               createAudioPlayer();
 
 
-                pendingSearches.delete(
-                    interaction.customId
-                );
+            const audioPath =
+               path.join(
+                  __dirname,
+                  'test.mp3'
+               );
 
 
-                await interaction.editReply({
-
-                    content:
-                        `🌸 **Momo added it to the cafe playlist!**\n\n` +
-                        `🎶 **${result.track.title}**\n` +
-                        `🎧 ${result.track.author || 'Unknown Artist'}\n\n` +
-                        `♡ Enjoy the music!`,
-
-                    embeds: [],
-
-                    components: []
-                });
+            const resource =
+               createAudioResource(
+                  audioPath
+               );
 
 
-            } catch (error) {
-
-                console.error(
-                    '🌸 Momo: Something went wrong with the selected song.',
-                    error
-                );
+            connection.subscribe(
+               audioPlayer
+            );
 
 
-                await interaction.editReply({
+            audioPlayer.play(
+               resource
+            );
 
-                    content:
-                        '🌸 Momo couldn’t start that version.\n\n' +
-                        '🎀 Try choosing another one from the list ♡',
 
-                    embeds: [],
+            await interaction.editReply(
+               '🎶 **Momo is playing her little test sound!** ♡'
+            );
 
-                    components: []
-                });
-            }
+
+            audioPlayer.on(
+               AudioPlayerStatus.Idle,
+               () => {
+
+                  console.log(
+                     '🌸 Momo: Her little test sound has finished.'
+                  );
+               }
+            );
 
 
             return;
-        }
+         }
 
 
-        // ==================================================
-        // 🌸 BUTTONS
-        // ==================================================
+         // ==================================================
+         // 🎵 PLAY
+         // ==================================================
 
-        if (
-            interaction.isButton()
-        ) {
+         if (
+            command === 'play'
+         ) {
+
+            const voiceChannel =
+               getVoiceChannel(
+                  interaction
+               );
+
+
+            if (!voiceChannel) {
+
+               await interaction.reply(
+
+                  '🌸 Momo needs you to join a voice channel first ♡\n' +
+                  '🎀 Then Momo will know where to play your song!'
+               );
+
+               return;
+            }
+
+
+            const query =
+               interaction.options
+               .getString(
+                  'song',
+                  true
+               )
+               .trim();
+
+
+            await interaction.deferReply();
+
+
+            // ==================================================
+            // 🔗 URL
+            // ==================================================
+
+            if (
+               looksLikeUrl(query)
+            ) {
+
+               // ==============================================
+               // 💚 SPOTIFY
+               // ==============================================
+
+               if (
+                  isSpotifyUrl(query)
+               ) {
+
+                  console.log(
+                     `🌸 Momo received a Spotify request: ${query}`
+                  );
+
+
+                  const spotifyResult =
+                     await player.search(
+                        query, {
+
+                           requestedBy: interaction.user,
+
+                           searchEngine: 'spotifySong'
+                        }
+                     );
+
+
+                  if (
+                     !spotifyResult.hasTracks()
+                  ) {
+
+                     await interaction.editReply(
+
+                        '🌸 Momo couldn’t read that Spotify song.\n\n' +
+                        '🎀 Try another Spotify track ♡'
+                     );
+
+                     return;
+                  }
+
+
+                  const spotifyTrack =
+                     spotifyResult.tracks[0];
+
+
+                  const youtubeQuery =
+                     `${spotifyTrack.title} ${spotifyTrack.author}`;
+
+
+                  console.log(
+                     `🌸 Momo is looking for a YouTube version of: ${youtubeQuery}`
+                  );
+
+
+                  const youtubeResult =
+                     await player.search(
+                        youtubeQuery, {
+
+                           requestedBy: interaction.user,
+
+                           searchEngine: 'youtubeSearch'
+                        }
+                     );
+
+
+                  if (
+                     !youtubeResult.hasTracks()
+                  ) {
+
+                     await interaction.editReply(
+
+                        `🌸 Momo recognized **${spotifyTrack.title}** by ` +
+                        `**${spotifyTrack.author}**, ` +
+                        `but couldn't find a YouTube version to play.\n\n` +
+                        `🎀 Maybe Momo can try another song? ♡`
+                     );
+
+                     return;
+                  }
+
+
+                  const tracks =
+                     youtubeResult.tracks.slice(
+                        0,
+                        5
+                     );
+
+
+                  const searchId =
+                     `momo_search_${interaction.id}`;
+
+
+                  pendingSearches.set(
+                     searchId, {
+
+                        userId: interaction.user.id,
+
+                        voiceChannelId: voiceChannel.id,
+
+                        tracks
+                     }
+                  );
+
+
+                  setTimeout(
+                     () => {
+
+                        pendingSearches.delete(
+                           searchId
+                        );
+
+                     },
+                     120000
+                  );
+
+
+                  const row =
+                     createSearchMenu(
+                        searchId,
+                        tracks,
+                        '🌸 Choose a YouTube version...'
+                     );
+
+
+                  const embed =
+                     new EmbedBuilder()
+
+                     .setColor(
+                        MOMO_COLOR
+                     )
+
+                     .setAuthor({
+                        name: `${MOMO_NAME} • ${MOMO_CAFE}`
+                     })
+
+                     .setTitle(
+                        '🌸 Momo found your Spotify song!'
+                     )
+
+                     .setDescription(
+
+                        `🎧 **Spotify song**\n` +
+                        `**${spotifyTrack.title}**\n` +
+                        `${spotifyTrack.author || 'Unknown Artist'}\n\n` +
+
+                        `🌸 **Momo found these YouTube versions:**\n\n` +
+
+                        tracks
+                        .map(
+                           (
+                              track,
+                              index
+                           ) =>
+
+                           `**${index + 1}. ${shorten(track.title, 75)}**\n` +
+                           `${shorten(track.author || 'Unknown Artist', 65)} • ` +
+                           `${track.duration || 'Unknown'}`
+                        )
+                        .join(
+                           '\n\n'
+                        )
+                     )
+
+                     .setFooter({
+                        text: '🌸 Choose the version Momo should play'
+                     });
+
+
+                  await interaction.editReply({
+
+                     embeds: [embed],
+
+                     components: [row]
+                  });
+
+
+                  return;
+               }
+
+
+               // ==============================================
+               // ❤️ YOUTUBE URL
+               // ==============================================
+
+               if (
+                  isYouTubeUrl(query)
+               ) {
+
+                  console.log(
+                     `🌸 Momo received a YouTube request: ${query}`
+                  );
+
+
+                  try {
+
+                     const result =
+                        await player.play(
+                           voiceChannel,
+                           query, {
+
+                              requestedBy: interaction.user,
+
+                              nodeOptions: getNodeOptions(
+                                 interaction
+                              )
+                           }
+                        );
+
+
+                     // A song has been successfully added.
+                     clearIdleTimer(
+                        interaction.guild.id
+                     );
+
+
+                     await interaction.editReply(
+
+                        `🌸 **Momo added the song to her playlist!**\n\n` +
+                        `🎶 **${result.track.title}**\n` +
+                        `🎧 ${result.track.author || 'Unknown Artist'}\n\n` +
+                        `♡ Momo hopes you enjoy it!`
+                     );
+
+
+                  } catch (error) {
+
+                     console.error(
+                        '🌸 Momo: YouTube playback could not be started.',
+                        error
+                     );
+
+
+                     await interaction.editReply(
+
+                        '🌸 Momo couldn’t play that YouTube video.\n\n' +
+                        '🎀 Try another video and Momo will give it a try ♡'
+                     );
+                  }
+
+
+                  return;
+               }
+
+
+               // ==============================================
+               // 🚫 UNSUPPORTED URL
+               // ==============================================
+
+               await interaction.editReply(
+
+                  '🌸 Momo doesn’t know that kind of music link yet ♡\n\n' +
+                  '🎶 Momo currently understands:\n' +
+                  '• Spotify links\n' +
+                  '• YouTube links\n' +
+                  '• Song-name searches'
+               );
+
+
+               return;
+            }
+
+
+            // ==================================================
+            // 🔎 TEXT SEARCH
+            // ==================================================
+
+            console.log(
+               `🌸 Momo is searching YouTube for: ${query}`
+            );
+
+
+            const searchResult =
+               await player.search(
+                  query, {
+
+                     requestedBy: interaction.user,
+
+                     searchEngine: 'youtubeSearch'
+                  }
+               );
+
+
+            console.log(
+               `🌸 Momo found ${searchResult.tracks.length} possible songs.`
+            );
+
+
+            if (
+               !searchResult.hasTracks()
+            ) {
+
+               await interaction.editReply(
+
+                  `🌸 Momo couldn’t find anything for **${query}**.\n\n` +
+                  `🎀 Maybe try another song title or artist? ♡`
+               );
+
+               return;
+            }
+
+
+            const tracks =
+               searchResult.tracks.slice(
+                  0,
+                  5
+               );
+
+
+            const searchId =
+               `momo_search_${interaction.id}`;
+
+
+            pendingSearches.set(
+               searchId, {
+
+                  userId: interaction.user.id,
+
+                  voiceChannelId: voiceChannel.id,
+
+                  tracks
+               }
+            );
+
+
+            setTimeout(
+               () => {
+
+                  pendingSearches.delete(
+                     searchId
+                  );
+
+               },
+               120000
+            );
+
+
+            const row =
+               createSearchMenu(
+                  searchId,
+                  tracks,
+                  '🌸 Choose a YouTube result...'
+               );
+
+
+            const embed =
+               createSearchEmbed(
+                  tracks,
+                  '🌸 Momo found these songs!'
+               );
+
+
+            await interaction.editReply({
+
+               embeds: [embed],
+
+               components: [row]
+            });
+
+
+            return;
+         }
+
+
+         // ==================================================
+         // 🌸 HELP
+         // ==================================================
+
+         if (
+            command === 'help'
+         ) {
+
+            const embed =
+               new EmbedBuilder()
+
+               .setColor(
+                  MOMO_COLOR
+               )
+
+               .setAuthor({
+                  name: `${MOMO_NAME} • ${MOMO_CAFE}`
+               })
+
+               .setTitle(
+                  '🎀 Momo’s Little Help Menu'
+               )
+
+               .setDescription(
+                  '🌸 Welcome to the Cherry Blossom Cafe ♡\n\n' +
+                  'Here are the little things Momo can do for you!'
+               )
+
+               .addFields(
+
+                  {
+                     name: '🎵 MUSIC',
+
+                     value: '`/play` — Find and play a song ♡\n' +
+                        '`/queue` — Peek at Momo’s little playlist\n' +
+                        '`/nowplaying` — See what Momo is playing',
+
+                     inline: false
+                  },
+
+
+                  {
+                     name: '🌸 PLAYBACK',
+
+                     value: '`/skip` — Skip the current song\n' +
+                        '`/pause` — Tuck the music into a little pause\n' +
+                        '`/resume` — Wake the music back up ♡\n' +
+                        '`/stop` — Stop the music and clear the playlist\n' +
+                        '`/leave` — Ask Momo to leave the voice channel',
+
+                     inline: false
+                  },
+
+
+                  {
+                     name: '🎀 QUEUE',
+
+                     value: '`/clear` — Clear all upcoming songs\n' +
+                        '`/queue` — See the songs waiting to play',
+
+                     inline: false
+                  }
+
+               )
+
+               .setFooter({
+
+                  text: '🌸 Momo Radio • Cherry Blossom Cafe • ♡'
+               });
+
+
+            await interaction.reply({
+
+               embeds: [
+                  embed
+               ]
+            });
+
+
+            return;
+         }
+
+
+         // ==================================================
+         // ⏭ SKIP
+         // ==================================================
+
+         if (
+            command === 'skip'
+         ) {
 
             const queue =
-                getQueue(
-                    interaction.guild.id
-                );
+               getQueue(
+                  interaction.guild.id
+               );
+
+
+            if (
+               !queue ||
+               !queue.isPlaying()
+            ) {
+
+               await interaction.reply(
+                  '🌸 Momo isn’t playing anything right now ♡'
+               );
+
+               return;
+            }
+
+
+            const currentTrack =
+               queue.currentTrack;
+
+
+            if (currentTrack) {
+
+               intentionallyStoppedTracks.set(
+                  currentTrack.id,
+                  'command'
+               );
+
+
+               clearRecoveryState(
+                  queue.guild.id
+               );
+            }
+
+
+            // Cancel any existing idle timer before
+            // changing the queue.
+            clearIdleTimer(
+               queue.guild.id
+            );
+
+
+            queue.node.skip();
+
+
+            await interaction.reply(
+               '⏭️ Momo skipped the song ♡'
+            );
+
+
+            return;
+         }
+
+
+         // ==================================================
+         // ⏸ PAUSE
+         // ==================================================
+
+         if (
+            command === 'pause'
+         ) {
+
+            const queue =
+               getQueue(
+                  interaction.guild.id
+               );
+
+
+            if (
+               !queue ||
+               !queue.isPlaying()
+            ) {
+
+               await interaction.reply(
+                  '🌸 Momo isn’t playing anything right now ♡'
+               );
+
+               return;
+            }
+
+
+            queue.node.setPaused(
+               true
+            );
+
+
+            await interaction.reply(
+               '⏸️ Momo tucked the music into a little pause ♡'
+            );
+
+
+            return;
+         }
+
+
+         // ==================================================
+         // ▶ RESUME
+         // ==================================================
+
+         if (
+            command === 'resume'
+         ) {
+
+            const queue =
+               getQueue(
+                  interaction.guild.id
+               );
+
+
+            if (
+               !queue ||
+               !queue.node.isPaused()
+            ) {
+
+               await interaction.reply(
+                  '🌸 Momo’s music is already playing ♡'
+               );
+
+               return;
+            }
+
+
+            queue.node.setPaused(
+               false
+            );
+
+
+            await interaction.reply(
+               '▶️ Momo is playing again ♡'
+            );
+
+
+            return;
+         }
+
+
+         // ==================================================
+         // ⏹ STOP
+         // ==================================================
+
+         if (
+            command === 'stop'
+         ) {
+
+            const queue =
+               getQueue(
+                  interaction.guild.id
+               );
 
 
             if (!queue) {
 
-                await interaction.reply({
+               await interaction.reply(
+                  '🌸 Momo isn’t playing anything right now ♡'
+               );
 
-                    content:
-                        '🌸 Momo isn’t playing anything right now ♡',
-
-                    flags:
-                        MessageFlags.Ephemeral
-                });
-
-                return;
+               return;
             }
 
 
-            try {
+            const currentTrack =
+               queue.currentTrack;
 
-                // ==========================================
-                // ⏸ PAUSE
-                // ==========================================
 
-                if (
-                    interaction.customId ===
-                    'momo_pause'
-                ) {
+            if (currentTrack) {
 
-                    if (
-                        !queue.isPlaying()
-                    ) {
+               intentionallyStoppedTracks.set(
+                  currentTrack.id,
+                  'stop'
+               );
 
-                        await interaction.reply({
 
-                            content:
-                                '🌸 Momo isn’t playing anything at the moment ♡',
-
-                            flags:
-                                MessageFlags.Ephemeral
-                        });
-
-                        return;
-                    }
-
-
-                    queue.node.setPaused(
-                        true
-                    );
-
-
-                    await interaction.reply({
-
-                        content:
-                            '⏸️ Momo tucked the music into a little pause ♡',
-
-                        flags:
-                            MessageFlags.Ephemeral
-                    });
-
-                    return;
-                }
-
-
-                // ==========================================
-                // ▶ RESUME
-                // ==========================================
-
-                if (
-                    interaction.customId ===
-                    'momo_resume'
-                ) {
-
-                    if (
-                        !queue.node.isPaused()
-                    ) {
-
-                        await interaction.reply({
-
-                            content:
-                                '🌸 Momo’s music is already playing ♡',
-
-                            flags:
-                                MessageFlags.Ephemeral
-                        });
-
-                        return;
-                    }
-
-
-                    queue.node.setPaused(
-                        false
-                    );
-
-
-                    await interaction.reply({
-
-                        content:
-                            '▶️ Momo is playing again ♡',
-
-                        flags:
-                            MessageFlags.Ephemeral
-                    });
-
-                    return;
-                }
-
-
-                // ==========================================
-                // ⏭ SKIP
-                // ==========================================
-
-                if (
-                    interaction.customId ===
-                    'momo_skip'
-                ) {
-
-                    if (
-                        !queue.isPlaying()
-                    ) {
-
-                        await interaction.reply({
-
-                            content:
-                                '🌸 Momo isn’t playing anything right now ♡',
-
-                            flags:
-                                MessageFlags.Ephemeral
-                        });
-
-                        return;
-                    }
-
-
-                    const currentTrack =
-                        queue.currentTrack;
-
-
-                    if (currentTrack) {
-
-                        intentionallyStoppedTracks.set(
-                            currentTrack.id,
-                            'button'
-                        );
-
-
-                        clearRecoveryState(
-                            queue.guild.id
-                        );
-                    }
-
-
-                    // A skip is no longer an idle state.
-                    // Cancel any old timer before changing
-                    // the queue.
-                    clearIdleTimer(
-                        queue.guild.id
-                    );
-
-
-                    queue.node.skip();
-
-
-                    await interaction.reply({
-
-                        content:
-                            '⏭️ Momo skipped the song ♡',
-
-                        flags:
-                            MessageFlags.Ephemeral
-                    });
-
-
-                    return;
-                }
-
-
-                // ==========================================
-                // ⏹ STOP
-                // ==========================================
-
-                if (
-                    interaction.customId ===
-                    'momo_stop'
-                ) {
-
-                    const currentTrack =
-                        queue.currentTrack;
-
-
-                    if (currentTrack) {
-
-                        intentionallyStoppedTracks.set(
-                            currentTrack.id,
-                            'stop'
-                        );
-
-
-                        clearRecoveryState(
-                            queue.guild.id
-                        );
-                    }
-
-
-                    // IMPORTANT:
-                    // Stop means the user intentionally
-                    // removed Momo, so cancel the timer too.
-                    clearIdleTimer(
-                        queue.guild.id
-                    );
-
-
-                    queue.delete();
-
-
-                    await interaction.reply({
-
-                        content:
-                            '⏹️ Momo stopped the music and cleared her playlist ♡',
-
-                        flags:
-                            MessageFlags.Ephemeral
-                    });
-
-                    return;
-                }
-
-            } catch (error) {
-
-                console.error(
-                    '🌸 Momo: Something went wrong with a music button.',
-                    error
-                );
-
-
-                if (
-                    !interaction.replied
-                ) {
-
-                    await interaction
-                        .reply({
-
-                            content:
-                                '🌸 Momo couldn’t do that just now.\n\n' +
-                                '🎀 Please try again in a moment ♡',
-
-                            flags:
-                                MessageFlags.Ephemeral
-
-                        })
-                        .catch(
-                            sendError =>
-                                console.error(
-                                    '🌸 Momo: Could not send button response.',
-                                    sendError
-                                )
-                        );
-                }
+               clearRecoveryState(
+                  queue.guild.id
+               );
             }
+
+
+            // IMPORTANT:
+            // Stop is intentional, so the idle timer
+            // should not survive this action.
+            clearIdleTimer(
+               queue.guild.id
+            );
+
+
+            queue.delete();
+
+
+            await interaction.reply(
+               '⏹️ Momo stopped the music and cleared her playlist ♡'
+            );
 
 
             return;
-        }
+         }
 
 
-        // ==================================================
-        // 🌸 SLASH COMMANDS
-        // ==================================================
+         // ==================================================
+         // 👋 LEAVE
+         // ==================================================
 
-        if (
-            !interaction.isChatInputCommand()
-        ) {
+         if (
+            command === 'leave'
+         ) {
+
+            const queue =
+               getQueue(
+                  interaction.guild.id
+               );
+
+
+            if (!queue) {
+
+               await interaction.reply(
+                  '🌸 Momo is already having a little break ♡'
+               );
+
+               return;
+            }
+
+
+            clearRecoveryState(
+               queue.guild.id
+            );
+
+
+            // IMPORTANT:
+            // Manual leave should always cancel
+            // the idle timer.
+            clearIdleTimer(
+               queue.guild.id
+            );
+
+
+            queue.delete();
+
+
+            await interaction.reply(
+               '👋 Momo is heading home from the voice channel for now ♡'
+            );
+
 
             return;
-        }
+         }
 
 
-        const command =
-            interaction.commandName;
+         // ==================================================
+         // 📜 QUEUE
+         // ==================================================
 
+         if (
+            command === 'queue'
+         ) {
 
-        try {
+            const queue =
+               getQueue(
+                  interaction.guild.id
+               );
+
 
             // ==================================================
-            // 🌸 HELLO
+            // 🌸 EMPTY QUEUE
             // ==================================================
 
-            if (
-                command === 'hello'
-            ) {
+            if (!queue) {
 
-                await safeReply(
-                    interaction,
+               const embed =
+                  new EmbedBuilder()
 
-                    '🌸 **Momo Radio is on air!**\n' +
-                    '🎶 Momo is ready to bring some music to Cherry Blossom Cafe ♡'
-                );
+                  .setColor(
+                     MOMO_COLOR
+                  )
 
-                return;
+                  .setAuthor({
+                     name: `${MOMO_NAME} • ${MOMO_CAFE}`
+                  })
+
+                  .setTitle(
+                     '🎀 Momo’s Queue'
+                  )
+
+                  .setDescription(
+                     '🌸 **The playlist is empty.**\n\n' +
+                     '🎶 Add a song with `/play` and Momo will take care of the rest ♡'
+                  )
+
+                  .setFooter({
+                     text: '🌸 Cherry Blossom Cafe'
+                  });
+
+
+               await interaction.reply({
+
+                  embeds: [embed]
+               });
+
+
+               return;
             }
 
 
-            // ==================================================
-            // 🧪 TEST MP3
-            // ==================================================
-
-            if (
-                command === 'test'
-            ) {
-
-                const voiceChannel =
-                    getVoiceChannel(
-                        interaction
-                    );
+            const current =
+               queue.currentTrack;
 
 
-                if (!voiceChannel) {
-
-                    await interaction.reply(
-                        '🌸 Momo needs you in a voice channel first ♡'
-                    );
-
-                    return;
-                }
-
-
-                await interaction.deferReply();
+            const upcoming =
+               queue.tracks
+               .toArray()
+               .slice(
+                  0,
+                  10
+               );
 
 
-                const connection =
-                    joinVoiceChannel({
-
-                        channelId:
-                            voiceChannel.id,
-
-                        guildId:
-                            interaction.guild.id,
-
-                        adapterCreator:
-                            interaction.guild.voiceAdapterCreator
-                    });
+            const totalUpcoming =
+               queue.tracks.size;
 
 
-                await entersState(
-
-                    connection,
-
-                    VoiceConnectionStatus.Ready,
-
-                    15000
-                );
-
-
-                const audioPlayer =
-                    createAudioPlayer();
-
-
-                const audioPath =
-                    path.join(
-                        __dirname,
-                        'test.mp3'
-                    );
-
-
-                const resource =
-                    createAudioResource(
-                        audioPath
-                    );
-
-
-                connection.subscribe(
-                    audioPlayer
-                );
-
-
-                audioPlayer.play(
-                    resource
-                );
-
-
-                await interaction.editReply(
-                    '🎶 **Momo is playing her little test sound!** ♡'
-                );
-
-
-                audioPlayer.on(
-                    AudioPlayerStatus.Idle,
-                    () => {
-
-                        console.log(
-                            '🌸 Momo: Her little test sound has finished.'
-                        );
-                    }
-                );
-
-
-                return;
-            }
+            const remaining =
+               Math.max(
+                  0,
+                  totalUpcoming -
+                  upcoming.length
+               );
 
 
             // ==================================================
-            // 🎵 PLAY
+            // 🌸 CURRENT SONG
             // ==================================================
 
-            if (
-                command === 'play'
-            ) {
+            let currentSection =
+               '🌸 Momo isn’t playing anything right now ♡';
 
-                const voiceChannel =
-                    getVoiceChannel(
-                        interaction
-                    );
 
+            if (current) {
 
-                if (!voiceChannel) {
+               let progressBar =
+                  '';
 
-                    await interaction.reply(
 
-                        '🌸 Momo needs you to join a voice channel first ♡\n' +
-                        '🎀 Then Momo will know where to play your song!'
-                    );
+               try {
 
-                    return;
-                }
+                  progressBar =
+                     queue.node.createProgressBar();
 
+               } catch (error) {
 
-                const query =
-                    interaction.options
-                        .getString(
-                            'song',
-                            true
-                        )
-                        .trim();
+                  console.warn(
+                     '🌸 Momo: Could not create the queue progress bar.',
+                     error
+                  );
+               }
 
 
-                await interaction.deferReply();
-
-
-                // ==================================================
-                // 🔗 URL
-                // ==================================================
-
-                if (
-                    looksLikeUrl(query)
-                ) {
-
-                    // ==============================================
-                    // 💚 SPOTIFY
-                    // ==============================================
-
-                    if (
-                        isSpotifyUrl(query)
-                    ) {
-
-                        console.log(
-                            `🌸 Momo received a Spotify request: ${query}`
-                        );
-
-
-                        const spotifyResult =
-                            await player.search(
-                                query,
-                                {
-
-                                    requestedBy:
-                                        interaction.user,
-
-                                    searchEngine:
-                                        'spotifySong'
-                                }
-                            );
-
-
-                        if (
-                            !spotifyResult.hasTracks()
-                        ) {
-
-                            await interaction.editReply(
-
-                                '🌸 Momo couldn’t read that Spotify song.\n\n' +
-                                '🎀 Try another Spotify track ♡'
-                            );
-
-                            return;
-                        }
-
-
-                        const spotifyTrack =
-                            spotifyResult.tracks[0];
-
-
-                        const youtubeQuery =
-                            `${spotifyTrack.title} ${spotifyTrack.author}`;
-
-
-                        console.log(
-                            `🌸 Momo is looking for a YouTube version of: ${youtubeQuery}`
-                        );
-
-
-                        const youtubeResult =
-                            await player.search(
-                                youtubeQuery,
-                                {
-
-                                    requestedBy:
-                                        interaction.user,
-
-                                    searchEngine:
-                                        'youtubeSearch'
-                                }
-                            );
-
-
-                        if (
-                            !youtubeResult.hasTracks()
-                        ) {
-
-                            await interaction.editReply(
-
-                                `🌸 Momo recognized **${spotifyTrack.title}** by ` +
-                                `**${spotifyTrack.author}**, ` +
-                                `but couldn't find a YouTube version to play.\n\n` +
-                                `🎀 Maybe Momo can try another song? ♡`
-                            );
-
-                            return;
-                        }
-
-
-                        const tracks =
-                            youtubeResult.tracks.slice(
-                                0,
-                                5
-                            );
-
-
-                        const searchId =
-                            `momo_search_${interaction.id}`;
-
-
-                        pendingSearches.set(
-                            searchId,
-                            {
-
-                                userId:
-                                    interaction.user.id,
-
-                                voiceChannelId:
-                                    voiceChannel.id,
-
-                                tracks
-                            }
-                        );
-
-
-                        setTimeout(
-                            () => {
-
-                                pendingSearches.delete(
-                                    searchId
-                                );
-
-                            },
-                            120000
-                        );
-
-
-                        const row =
-                            createSearchMenu(
-                                searchId,
-                                tracks,
-                                '🌸 Choose a YouTube version...'
-                            );
-
-
-                        const embed =
-                            new EmbedBuilder()
-
-                                .setColor(
-                                    MOMO_COLOR
-                                )
-
-                                .setAuthor({
-                                    name:
-                                        `${MOMO_NAME} • ${MOMO_CAFE}`
-                                })
-
-                                .setTitle(
-                                    '🌸 Momo found your Spotify song!'
-                                )
-
-                                .setDescription(
-
-                                    `🎧 **Spotify song**\n` +
-                                    `**${spotifyTrack.title}**\n` +
-                                    `${spotifyTrack.author || 'Unknown Artist'}\n\n` +
-
-                                    `🌸 **Momo found these YouTube versions:**\n\n` +
-
-                                    tracks
-                                        .map(
-                                            (
-                                                track,
-                                                index
-                                            ) =>
-
-                                                `**${index + 1}. ${shorten(track.title, 75)}**\n` +
-                                                `${shorten(track.author || 'Unknown Artist', 65)} • ` +
-                                                `${track.duration || 'Unknown'}`
-                                        )
-                                        .join(
-                                            '\n\n'
-                                        )
-                                )
-
-                                .setFooter({
-                                    text:
-                                        '🌸 Choose the version Momo should play'
-                                });
-
-
-                        await interaction.editReply({
-
-                            embeds: [embed],
-
-                            components: [row]
-                        });
-
-
-                        return;
-                    }
-
-
-                    // ==============================================
-                    // ❤️ YOUTUBE URL
-                    // ==============================================
-
-                    if (
-                        isYouTubeUrl(query)
-                    ) {
-
-                        console.log(
-                            `🌸 Momo received a YouTube request: ${query}`
-                        );
-
-
-                        try {
-
-                            const result =
-                                await player.play(
-                                    voiceChannel,
-                                    query,
-                                    {
-
-                                        requestedBy:
-                                            interaction.user,
-
-                                        nodeOptions:
-                                            getNodeOptions(
-                                                interaction
-                                            )
-                                    }
-                                );
-
-
-                            // A song has been successfully added.
-                            clearIdleTimer(
-                                interaction.guild.id
-                            );
-
-
-                            await interaction.editReply(
-
-                                `🌸 **Momo added the song to her playlist!**\n\n` +
-                                `🎶 **${result.track.title}**\n` +
-                                `🎧 ${result.track.author || 'Unknown Artist'}\n\n` +
-                                `♡ Momo hopes you enjoy it!`
-                            );
-
-
-                        } catch (error) {
-
-                            console.error(
-                                '🌸 Momo: YouTube playback could not be started.',
-                                error
-                            );
-
-
-                            await interaction.editReply(
-
-                                '🌸 Momo couldn’t play that YouTube video.\n\n' +
-                                '🎀 Try another video and Momo will give it a try ♡'
-                            );
-                        }
-
-
-                        return;
-                    }
-
-
-                    // ==============================================
-                    // 🚫 UNSUPPORTED URL
-                    // ==============================================
-
-                    await interaction.editReply(
-
-                        '🌸 Momo doesn’t know that kind of music link yet ♡\n\n' +
-                        '🎶 Momo currently understands:\n' +
-                        '• Spotify links\n' +
-                        '• YouTube links\n' +
-                        '• Song-name searches'
-                    );
-
-
-                    return;
-                }
-
-
-                // ==================================================
-                // 🔎 TEXT SEARCH
-                // ==================================================
-
-                console.log(
-                    `🌸 Momo is searching YouTube for: ${query}`
-                );
-
-
-                const searchResult =
-                    await player.search(
-                        query,
-                        {
-
-                            requestedBy:
-                                interaction.user,
-
-                            searchEngine:
-                                'youtubeSearch'
-                        }
-                    );
-
-
-                console.log(
-                    `🌸 Momo found ${searchResult.tracks.length} possible songs.`
-                );
-
-
-                if (
-                    !searchResult.hasTracks()
-                ) {
-
-                    await interaction.editReply(
-
-                        `🌸 Momo couldn’t find anything for **${query}**.\n\n` +
-                        `🎀 Maybe try another song title or artist? ♡`
-                    );
-
-                    return;
-                }
-
-
-                const tracks =
-                    searchResult.tracks.slice(
-                        0,
-                        5
-                    );
-
-
-                const searchId =
-                    `momo_search_${interaction.id}`;
-
-
-                pendingSearches.set(
-                    searchId,
-                    {
-
-                        userId:
-                            interaction.user.id,
-
-                        voiceChannelId:
-                            voiceChannel.id,
-
-                        tracks
-                    }
-                );
-
-
-                setTimeout(
-                    () => {
-
-                        pendingSearches.delete(
-                            searchId
-                        );
-
-                    },
-                    120000
-                );
-
-
-                const row =
-                    createSearchMenu(
-                        searchId,
-                        tracks,
-                        '🌸 Choose a YouTube result...'
-                    );
-
-
-                const embed =
-                    createSearchEmbed(
-                        tracks,
-                        '🌸 Momo found these songs!'
-                    );
-
-
-                await interaction.editReply({
-
-                    embeds: [embed],
-
-                    components: [row]
-                });
-
-
-                return;
-            }
-
-
-            // ==================================================
-            // 🌸 HELP
-            // ==================================================
-
-            if (
-                command === 'help'
-            ) {
-
-                const embed =
-                    new EmbedBuilder()
-
-                        .setColor(
-                            MOMO_COLOR
-                        )
-
-                        .setAuthor({
-                            name:
-                                `${MOMO_NAME} • ${MOMO_CAFE}`
-                        })
-
-                        .setTitle(
-                            '🎀 Momo’s Little Help Menu'
-                        )
-
-                        .setDescription(
-                            '🌸 Welcome to the Cherry Blossom Cafe ♡\n\n' +
-                            'Here are the little things Momo can do for you!'
-                        )
-
-                        .addFields(
-
-                            {
-                                name:
-                                    '🎵 MUSIC',
-
-                                value:
-                                    '`/play` — Find and play a song ♡\n' +
-                                    '`/queue` — Peek at Momo’s little playlist\n' +
-                                    '`/nowplaying` — See what Momo is playing',
-
-                                inline:
-                                    false
-                            },
-
-
-                            {
-                                name:
-                                    '🌸 PLAYBACK',
-
-                                value:
-                                    '`/skip` — Skip the current song\n' +
-                                    '`/pause` — Tuck the music into a little pause\n' +
-                                    '`/resume` — Wake the music back up ♡\n' +
-                                    '`/stop` — Stop the music and clear the playlist\n' +
-                                    '`/leave` — Ask Momo to leave the voice channel',
-
-                                inline:
-                                    false
-                            },
-
-
-                            {
-                                name:
-                                    '🎀 QUEUE',
-
-                                value:
-                                    '`/clear` — Clear all upcoming songs\n' +
-                                    '`/queue` — See the songs waiting to play',
-
-                                inline:
-                                    false
-                            }
-
-                        )
-
-                        .setFooter({
-
-                            text:
-                                '🌸 Momo Radio • Cherry Blossom Cafe • ♡'
-                        });
-
-
-                await interaction.reply({
-
-                    embeds: [
-                        embed
-                    ]
-                });
-
-
-                return;
-            }
-
-
-            // ==================================================
-            // ⏭ SKIP
-            // ==================================================
-
-            if (
-                command === 'skip'
-            ) {
-
-                const queue =
-                    getQueue(
-                        interaction.guild.id
-                    );
-
-
-                if (
-                    !queue ||
-                    !queue.isPlaying()
-                ) {
-
-                    await interaction.reply(
-                        '🌸 Momo isn’t playing anything right now ♡'
-                    );
-
-                    return;
-                }
-
-
-                const currentTrack =
-                    queue.currentTrack;
-
-
-                if (currentTrack) {
-
-                    intentionallyStoppedTracks.set(
-                        currentTrack.id,
-                        'command'
-                    );
-
-
-                    clearRecoveryState(
-                        queue.guild.id
-                    );
-                }
-
-
-                // Cancel any existing idle timer before
-                // changing the queue.
-                clearIdleTimer(
-                    queue.guild.id
-                );
-
-
-                queue.node.skip();
-
-
-                await interaction.reply(
-                    '⏭️ Momo skipped the song ♡'
-                );
-
-
-                return;
-            }
-
-
-            // ==================================================
-            // ⏸ PAUSE
-            // ==================================================
-
-            if (
-                command === 'pause'
-            ) {
-
-                const queue =
-                    getQueue(
-                        interaction.guild.id
-                    );
-
-
-                if (
-                    !queue ||
-                    !queue.isPlaying()
-                ) {
-
-                    await interaction.reply(
-                        '🌸 Momo isn’t playing anything right now ♡'
-                    );
-
-                    return;
-                }
-
-
-                queue.node.setPaused(
-                    true
-                );
-
-
-                await interaction.reply(
-                    '⏸️ Momo tucked the music into a little pause ♡'
-                );
-
-
-                return;
-            }
-
-
-            // ==================================================
-            // ▶ RESUME
-            // ==================================================
-
-            if (
-                command === 'resume'
-            ) {
-
-                const queue =
-                    getQueue(
-                        interaction.guild.id
-                    );
-
-
-                if (
-                    !queue ||
-                    !queue.node.isPaused()
-                ) {
-
-                    await interaction.reply(
-                        '🌸 Momo’s music is already playing ♡'
-                    );
-
-                    return;
-                }
-
-
-                queue.node.setPaused(
-                    false
-                );
-
-
-                await interaction.reply(
-                    '▶️ Momo is playing again ♡'
-                );
-
-
-                return;
-            }
-
-
-            // ==================================================
-            // ⏹ STOP
-            // ==================================================
-
-            if (
-                command === 'stop'
-            ) {
-
-                const queue =
-                    getQueue(
-                        interaction.guild.id
-                    );
-
-
-                if (!queue) {
-
-                    await interaction.reply(
-                        '🌸 Momo isn’t playing anything right now ♡'
-                    );
-
-                    return;
-                }
-
-
-                const currentTrack =
-                    queue.currentTrack;
-
-
-                if (currentTrack) {
-
-                    intentionallyStoppedTracks.set(
-                        currentTrack.id,
-                        'stop'
-                    );
-
-
-                    clearRecoveryState(
-                        queue.guild.id
-                    );
-                }
-
-
-                // IMPORTANT:
-                // Stop is intentional, so the idle timer
-                // should not survive this action.
-                clearIdleTimer(
-                    queue.guild.id
-                );
-
-
-                queue.delete();
-
-
-                await interaction.reply(
-                    '⏹️ Momo stopped the music and cleared her playlist ♡'
-                );
-
-
-                return;
-            }
-
-
-            // ==================================================
-            // 👋 LEAVE
-            // ==================================================
-
-            if (
-                command === 'leave'
-            ) {
-
-                const queue =
-                    getQueue(
-                        interaction.guild.id
-                    );
-
-
-                if (!queue) {
-
-                    await interaction.reply(
-                        '🌸 Momo is already having a little break ♡'
-                    );
-
-                    return;
-                }
-
-
-                clearRecoveryState(
-                    queue.guild.id
-                );
-
-
-                // IMPORTANT:
-                // Manual leave should always cancel
-                // the idle timer.
-                clearIdleTimer(
-                    queue.guild.id
-                );
-
-
-                queue.delete();
-
-
-                await interaction.reply(
-                    '👋 Momo is heading home from the voice channel for now ♡'
-                );
-
-
-                return;
-            }
-
-
-            // ==================================================
-            // 📜 QUEUE
-            // ==================================================
-
-            if (
-                command === 'queue'
-            ) {
-
-                const queue =
-                    getQueue(
-                        interaction.guild.id
-                    );
-
-
-                // ==================================================
-                // 🌸 EMPTY QUEUE
-                // ==================================================
-
-                if (!queue) {
-
-                    const embed =
-                        new EmbedBuilder()
-
-                            .setColor(
-                                MOMO_COLOR
-                            )
-
-                            .setAuthor({
-                                name:
-                                    `${MOMO_NAME} • ${MOMO_CAFE}`
-                            })
-
-                            .setTitle(
-                                '🎀 Momo’s Queue'
-                            )
-
-                            .setDescription(
-                                '🌸 **The playlist is empty.**\n\n' +
-                                '🎶 Add a song with `/play` and Momo will take care of the rest ♡'
-                            )
-
-                            .setFooter({
-                                text:
-                                    '🌸 Cherry Blossom Cafe'
-                            });
-
-
-                    await interaction.reply({
-
-                        embeds: [embed]
-                    });
-
-
-                    return;
-                }
-
-
-                const current =
-                    queue.currentTrack;
-
-
-                const upcoming =
-                    queue.tracks
-                        .toArray()
-                        .slice(
-                            0,
-                            10
-                        );
-
-
-                const totalUpcoming =
-                    queue.tracks.size;
-
-
-                const remaining =
-                    Math.max(
-                        0,
-                        totalUpcoming -
-                        upcoming.length
-                    );
-
-
-                // ==================================================
-                // 🌸 CURRENT SONG
-                // ==================================================
-
-                let currentSection =
-                    '🌸 Momo isn’t playing anything right now ♡';
-
-
-                if (current) {
-
-                    let progressBar =
-                        '';
-
-
-                    try {
-
-                        progressBar =
-                            queue.node.createProgressBar();
-
-                    } catch (error) {
-
-                        console.warn(
-                            '🌸 Momo: Could not create the queue progress bar.',
-                            error
-                        );
-                    }
-
-
-                    currentSection =
-                        `**${shorten(current.title, 75)}**\n` +
-                        `${shorten(
+               currentSection =
+                  `**${shorten(current.title, 75)}**\n` +
+                  `${shorten(
                             current.author ||
                             'Unknown Artist',
                             70
                         )}\n\n`;
 
 
-                    if (progressBar) {
+               if (progressBar) {
 
-                        currentSection +=
-                            `${progressBar}\n`;
-                    }
+                  currentSection +=
+                     `${progressBar}\n`;
+               }
 
 
-                    currentSection +=
-                        `🎧 Requested by ${
+               currentSection +=
+                  `🎧 Requested by ${
                             current.requestedBy?.toString() ||
                             'a lovely listener'
                         }`;
-                }
+            }
 
 
-                // ==================================================
-                // 🌸 UP NEXT
-                // ==================================================
+            // ==================================================
+            // 🌸 UP NEXT
+            // ==================================================
 
-                let upcomingSection =
-                    '🌸 Nothing else is waiting in Momo’s playlist ♡';
-
-
-                if (
-                    upcoming.length > 0
-                ) {
-
-                    upcomingSection =
-
-                        upcoming
-                            .map(
-                                (
-                                    track,
-                                    index
-                                ) => {
-
-                                    const number =
-                                        getQueueNumber(
-                                            index
-                                        );
+            let upcomingSection =
+               '🌸 Nothing else is waiting in Momo’s playlist ♡';
 
 
-                                    const title =
-                                        shorten(
-                                            track.title,
-                                            65
-                                        );
+            if (
+               upcoming.length > 0
+            ) {
+
+               upcomingSection =
+
+                  upcoming
+                  .map(
+                     (
+                        track,
+                        index
+                     ) => {
+
+                        const number =
+                           getQueueNumber(
+                              index
+                           );
 
 
-                                    const artist =
-                                        shorten(
-                                            track.author ||
-                                            'Unknown Artist',
-                                            55
-                                        );
+                        const title =
+                           shorten(
+                              track.title,
+                              65
+                           );
 
 
-                                    const duration =
-                                        track.duration ||
-                                        'Unknown';
+                        const artist =
+                           shorten(
+                              track.author ||
+                              'Unknown Artist',
+                              55
+                           );
 
 
-                                    return (
-
-                                        `${number} **${title}**\n` +
-                                        `　${artist} • \`${duration}\``
-                                    );
-                                }
-                            )
-                            .join(
-                                '\n\n'
-                            );
-                }
+                        const duration =
+                           track.duration ||
+                           'Unknown';
 
 
-                // ==================================================
-                // 🌸 QUEUE EMBED
-                // ==================================================
+                        return (
 
-                const embed =
-                    new EmbedBuilder()
+                           `${number} **${title}**\n` +
+                           `　${artist} • \`${duration}\``
+                        );
+                     }
+                  )
+                  .join(
+                     '\n\n'
+                  );
+            }
 
-                        .setColor(
-                            MOMO_COLOR
-                        )
 
-                        .setAuthor({
-                            name:
-                                `${MOMO_NAME} • ${MOMO_CAFE}`
-                        })
+            // ==================================================
+            // 🌸 QUEUE EMBED
+            // ==================================================
 
-                        .setTitle(
-                            '🎀 Momo’s Queue'
-                        )
+            const embed =
+               new EmbedBuilder()
 
-                        .setDescription(
-                            '🌸 *A little playlist for the cafe ♡*'
-                        )
+               .setColor(
+                  MOMO_COLOR
+               )
 
-                        .addFields(
+               .setAuthor({
+                  name: `${MOMO_NAME} • ${MOMO_CAFE}`
+               })
 
-                            {
-                                name:
-                                    '🎶 NOW PLAYING',
+               .setTitle(
+                  '🎀 Momo’s Queue'
+               )
 
-                                value:
-                                    currentSection
-                            },
+               .setDescription(
+                  '🌸 *A little playlist for the cafe ♡*'
+               )
 
-                            {
-                                name:
-                                    `🌸 UP NEXT${
+               .addFields(
+
+                  {
+                     name: '🎶 NOW PLAYING',
+
+                     value: currentSection
+                  },
+
+                  {
+                     name: `🌸 UP NEXT${
                                         totalUpcoming > 0
                                             ? ` • ${totalUpcoming}`
                                             : ''
                                     }`,
 
-                                value:
-                                    upcomingSection
-                            }
-                        )
+                     value: upcomingSection
+                  }
+               )
 
-                        .setFooter({
+               .setFooter({
 
-                            text:
-                                remaining > 0
+                  text: remaining > 0
 
-                                    ? `🌸 ${remaining} more song${
+                     ?
+                     `🌸 ${remaining} more song${
                                         remaining === 1
                                             ? ''
                                             : 's'
                                       } waiting • ${MOMO_CAFE}`
 
-                                    : `🌸 That’s everything for now • ${MOMO_CAFE}`
-                        });
+                     :
+                     `🌸 That’s everything for now • ${MOMO_CAFE}`
+               });
 
-
-                if (
-                    current &&
-                    current.thumbnail
-                ) {
-
-                    embed.setThumbnail(
-                        current.thumbnail
-                    );
-                }
-
-
-                await interaction.reply({
-
-                    embeds: [embed]
-                });
-
-
-                return;
-            }
-
-
-            // ==================================================
-            // 🎶 NOW PLAYING
-            // ==================================================
 
             if (
-                command === 'nowplaying'
+               current &&
+               current.thumbnail
             ) {
 
-                const queue =
-                    getQueue(
-                        interaction.guild.id
-                    );
-
-
-                if (
-                    !queue ||
-                    !queue.currentTrack
-                ) {
-
-                    await interaction.reply(
-                        '🌸 Momo isn’t playing anything right now ♡'
-                    );
-
-                    return;
-                }
-
-
-                const track =
-                    queue.currentTrack;
-
-
-                const embed =
-                    createNowPlayingEmbed(
-                        track
-                    );
-
-
-                const buttons =
-                    createPlayerButtons();
-
-
-                await interaction.reply({
-
-                    embeds: [embed],
-
-                    components: [buttons]
-                });
-
-
-                return;
+               embed.setThumbnail(
+                  current.thumbnail
+               );
             }
 
 
-            // ==================================================
-            // 🗑 CLEAR
-            // ==================================================
+            await interaction.reply({
+
+               embeds: [embed]
+            });
+
+
+            return;
+         }
+
+
+         // ==================================================
+         // 🎶 NOW PLAYING
+         // ==================================================
+
+         if (
+            command === 'nowplaying'
+         ) {
+
+            const queue =
+               getQueue(
+                  interaction.guild.id
+               );
+
 
             if (
-                command === 'clear'
+               !queue ||
+               !queue.currentTrack
             ) {
 
-                const queue =
-                    getQueue(
-                        interaction.guild.id
-                    );
+               await interaction.reply(
+                  '🌸 Momo isn’t playing anything right now ♡'
+               );
 
-
-                if (!queue) {
-
-                    await interaction.reply(
-                        '🌸 Momo’s playlist is already empty ♡'
-                    );
-
-                    return;
-                }
-
-
-                queue.tracks.clear();
-
-
-                await interaction.reply(
-                    '🗑️ Momo cleared all the upcoming songs ♡\n\n🎶 The current song can finish peacefully.'
-                );
-
-
-                // Normally playerFinish will start the idle
-                // timer once the current song finishes.
-                //
-                // This extra check handles the case where
-                // there is already no current song.
-                setTimeout(
-                    () => {
-
-                        const currentQueue =
-                            getQueue(
-                                interaction.guild.id
-                            );
-
-
-                        if (
-                            currentQueue &&
-                            !currentQueue.currentTrack &&
-                            currentQueue.tracks.size === 0
-                        ) {
-
-                            startIdleTimer(
-                                currentQueue
-                            );
-                        }
-
-                    },
-                    500
-                );
-
-
-                return;
+               return;
             }
 
-        } catch (error) {
 
-            // ==================================================
-            // 🌸 MOMO'S LAST RESORT
-            // ==================================================
+            const track =
+               queue.currentTrack;
 
-            console.error(
-                '🌸 Momo: An unexpected command problem occurred.',
-                error
+
+            const embed =
+               createNowPlayingEmbed(
+                  track
+               );
+
+
+            const buttons =
+               createPlayerButtons();
+
+
+            await interaction.reply({
+
+               embeds: [embed],
+
+               components: [buttons]
+            });
+
+
+            return;
+         }
+
+
+         // ==================================================
+         // 🗑 CLEAR
+         // ==================================================
+
+         if (
+            command === 'clear'
+         ) {
+
+            const queue =
+               getQueue(
+                  interaction.guild.id
+               );
+
+
+            if (!queue) {
+
+               await interaction.reply(
+                  '🌸 Momo’s playlist is already empty ♡'
+               );
+
+               return;
+            }
+
+
+            queue.tracks.clear();
+
+
+            await interaction.reply(
+               '🗑️ Momo cleared all the upcoming songs ♡\n\n🎶 The current song can finish peacefully.'
             );
 
 
-            await safeReply(
+            // Normally playerFinish will start the idle
+            // timer once the current song finishes.
+            //
+            // This extra check handles the case where
+            // there is already no current song.
+            setTimeout(
+               () => {
 
-                interaction,
+                  const currentQueue =
+                     getQueue(
+                        interaction.guild.id
+                     );
 
-                '🌸 Momo stumbled over something for a moment.\n\n' +
-                '🎀 Please try that again in a little while ♡'
+
+                  if (
+                     currentQueue &&
+                     !currentQueue.currentTrack &&
+                     currentQueue.tracks.size === 0
+                  ) {
+
+                     startIdleTimer(
+                        currentQueue
+                     );
+                  }
+
+               },
+               500
             );
-        }
-    }
+
+
+            return;
+         }
+
+      } catch (error) {
+
+         // ==================================================
+         // 🌸 MOMO'S LAST RESORT
+         // ==================================================
+
+         console.error(
+            '🌸 Momo: An unexpected command problem occurred.',
+            error
+         );
+
+
+         await safeReply(
+
+            interaction,
+
+            '🌸 Momo stumbled over something for a moment.\n\n' +
+            '🎀 Please try that again in a little while ♡'
+         );
+      }
+   }
 );
 
 
@@ -3281,37 +3197,37 @@ client.on(
 
 async function startBot() {
 
-    if (
-        !process.env.DISCORD_TOKEN
-    ) {
+   if (
+      !process.env.DISCORD_TOKEN
+   ) {
 
-        console.error(
-            '🌸 Momo cannot wake up because DISCORD_TOKEN is missing from .env'
-        );
+      console.error(
+         '🌸 Momo cannot wake up because DISCORD_TOKEN is missing from .env'
+      );
 
-        process.exit(1);
-    }
-
-
-    try {
-
-        await loadExtractors();
+      process.exit(1);
+   }
 
 
-        await client.login(
-            process.env.DISCORD_TOKEN
-        );
+   try {
+
+      await loadExtractors();
 
 
-    } catch (error) {
+      await client.login(
+         process.env.DISCORD_TOKEN
+      );
 
-        console.error(
-            '🌸 Momo could not wake up properly.',
-            error
-        );
 
-        process.exit(1);
-    }
+   } catch (error) {
+
+      console.error(
+         '🌸 Momo could not wake up properly.',
+         error
+      );
+
+      process.exit(1);
+   }
 }
 
 
