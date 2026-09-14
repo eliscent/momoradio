@@ -2462,7 +2462,6 @@ client.on(
                )
 
                .setDescription(
-                  '🌸 Welcome to the Cherry Blossom Cafe ♡\n\n' +
                   'Here are the little things Momo can do for you!'
                )
 
@@ -3130,7 +3129,7 @@ client.on(
 
 
             await interaction.reply(
-               '🗑️ Momo cleared all the upcoming songs ♡\n\n🎶 The current song can finish peacefully.'
+               '🗑️ Momo cleared the queue ♡\n\n🎶 The current song will finish.'
             );
 
 
