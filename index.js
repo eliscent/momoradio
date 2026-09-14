@@ -69,6 +69,10 @@ const player = new Player(client, {
    skipFFmpeg: false
 });
 
+player.events.on('debug', (message) => {
+   console.log(`🌸 [VOICE DEBUG] ${message}`);
+});
+
 
 // ======================================================
 // 🌸 SEARCH STATE
