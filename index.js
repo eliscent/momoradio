@@ -2,8 +2,6 @@ require('dotenv').config();
 
 const path = require('path');
 
-process.env.PATH = `${process.env.HOME}/.local/bin:${process.env.PATH || ''}`;
-
 const {
    Client,
    GatewayIntentBits,
@@ -64,13 +62,7 @@ const client = new Client({
 // ======================================================
 
 const player = new Player(client, {
-   connectionTimeout: 30000,
-   ytdlOptions: {},
-   skipFFmpeg: false
-});
-
-player.events.on('debug', (message) => {
-   console.log(`🌸 [VOICE DEBUG] ${message}`);
+   connectionTimeout: 30000
 });
 
 
